@@ -5,7 +5,10 @@ class RegisterScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: Stack(
           children: [
@@ -14,7 +17,10 @@ class RegisterScreen extends StatelessWidget {
               top: 8,
               left: 8,
               child: IconButton(
-                icon: const Icon(Icons.arrow_back, color: Colors.black54),
+                icon: Icon(
+                  Icons.arrow_back,
+                  color: isDark ? Colors.white70 : Colors.black54,
+                ),
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
@@ -28,11 +34,12 @@ class RegisterScreen extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const SizedBox(height: 12),
-                    const Text(
+                    Text(
                       'Crie sua Conta',
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
+                        color: isDark ? Colors.white : Colors.black,
                       ),
                     ),
                     const SizedBox(height: 36),
@@ -41,12 +48,14 @@ class RegisterScreen extends StatelessWidget {
                     TextField(
                       decoration: InputDecoration(
                         labelText: 'Digite seu CPF',
+                        labelStyle: TextStyle(color: isDark ? Colors.white70 : Colors.black87),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
                         isDense: true,
                       ),
                       keyboardType: TextInputType.number,
+                      style: TextStyle(color: isDark ? Colors.white : Colors.black),
                     ),
                     const SizedBox(height: 18),
 
@@ -54,11 +63,13 @@ class RegisterScreen extends StatelessWidget {
                     TextField(
                       decoration: InputDecoration(
                         labelText: 'Digite seu Nome',
+                        labelStyle: TextStyle(color: isDark ? Colors.white70 : Colors.black87),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
                         isDense: true,
                       ),
+                      style: TextStyle(color: isDark ? Colors.white : Colors.black),
                     ),
                     const SizedBox(height: 18),
 
@@ -66,12 +77,14 @@ class RegisterScreen extends StatelessWidget {
                     TextField(
                       decoration: InputDecoration(
                         labelText: 'Digite seu Email',
+                        labelStyle: TextStyle(color: isDark ? Colors.white70 : Colors.black87),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
                         isDense: true,
                       ),
                       keyboardType: TextInputType.emailAddress,
+                      style: TextStyle(color: isDark ? Colors.white : Colors.black),
                     ),
                     const SizedBox(height: 18),
 
@@ -79,23 +92,25 @@ class RegisterScreen extends StatelessWidget {
                     TextField(
                       decoration: InputDecoration(
                         labelText: 'Digite sua Senha',
+                        labelStyle: TextStyle(color: isDark ? Colors.white70 : Colors.black87),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
                         isDense: true,
                       ),
                       obscureText: true,
+                      style: TextStyle(color: isDark ? Colors.white : Colors.black),
                     ),
                     const SizedBox(height: 28),
 
                     // Botão Registrar
                     SizedBox(
-                      width: 110,
+                      width: 120,
                       height: 36,
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white,
-                          foregroundColor: Colors.black,
+                          backgroundColor: Theme.of(context).cardColor,
+                          foregroundColor: isDark ? Colors.white : Colors.black,
                           elevation: 2,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(16),

@@ -3,7 +3,9 @@ import 'register_screen.dart'; // Importe sua tela de registro
 import 'eventos_screen.dart';  // Importe sua tela de eventos
 
 class LoginScreen extends StatelessWidget {
-  const LoginScreen({super.key});
+  final void Function(bool)? onToggleTheme;
+  final bool darkMode;
+  const LoginScreen({super.key, this.onToggleTheme, this.darkMode = false});
 
   @override
   Widget build(BuildContext context) {
@@ -75,18 +77,24 @@ class LoginScreen extends StatelessWidget {
                     Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const EventosScreen(),
+                        builder: (context) => EventosScreen(
+                          onToggleTheme: onToggleTheme,
+                          darkMode: darkMode,
+                        ),
                       ),
                     );
                   },
-                  child: const Text('Login'),
+                  child: const Text(
+                    'Login',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
                 ),
               ),
               const SizedBox(height: 14),
 
               // Botão Registrar-se
               SizedBox(
-                width: 110,
+                width: 150,
                 height: 36,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(

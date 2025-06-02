@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'perfil_screen.dart'; // Importe sua tela de perfil aqui
 
 class EventosScreen extends StatelessWidget {
-  const EventosScreen({super.key});
+  final void Function(bool)? onToggleTheme;
+  final bool darkMode;
+  const EventosScreen({super.key, this.onToggleTheme, this.darkMode = false});
 
   @override
   Widget build(BuildContext context) {
@@ -9,7 +12,7 @@ class EventosScreen extends StatelessWidget {
       length: 3,
       child: Scaffold(
         appBar: AppBar(
-          backgroundColor: Colors.white,
+          backgroundColor: Theme.of(context).appBarTheme.backgroundColor ?? Colors.white,
           elevation: 0,
           automaticallyImplyLeading: false,
           bottom: const TabBar(
@@ -23,11 +26,14 @@ class EventosScreen extends StatelessWidget {
             ],
           ),
         ),
-        body: const TabBarView(
+        body: TabBarView(
           children: [
-            EventosTab(),
-            MeusIngressosTab(), // agora sua aba personalizada!
-            ConfiguracoesTab(),
+            const EventosTab(),
+            const MeusIngressosTab(),
+            ConfiguracoesTab(
+              onToggleTheme: onToggleTheme,
+              darkMode: darkMode,
+            ),
           ],
         ),
       ),
@@ -35,7 +41,7 @@ class EventosScreen extends StatelessWidget {
   }
 }
 
-// EventosTab (mesmo do exemplo anterior)
+// EventosTab (sem alteração)
 class EventosTab extends StatelessWidget {
   const EventosTab({super.key});
   @override
@@ -99,7 +105,7 @@ class EventosTab extends StatelessWidget {
   }
 }
 
-// MeusIngressosTab adaptado
+// MeusIngressosTab (sem alteração)
 class MeusIngressosTab extends StatelessWidget {
   const MeusIngressosTab({super.key});
 
@@ -201,16 +207,124 @@ class MeusIngressosTab extends StatelessWidget {
   }
 }
 
-// Exemplo simples para configurações (pode editar depois)
-class ConfiguracoesTab extends StatelessWidget {
-  const ConfiguracoesTab({super.key});
+// ConfiguracoesTab recebe agora os parâmetros
+class ConfiguracoesTab extends StatefulWidget {
+  final void Function(bool)? onToggleTheme;
+  final bool darkMode;
+  const ConfiguracoesTab({super.key, this.onToggleTheme, this.darkMode = false});
+
+  @override
+  State<ConfiguracoesTab> createState() => _ConfiguracoesTabState();
+}
+
+class _ConfiguracoesTabState extends State<ConfiguracoesTab> {
+  late bool modoEscuro;
+
+  @override
+  void initState() {
+    super.initState();
+    modoEscuro = widget.darkMode;
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Text(
-        'Aqui vão as configurações do aplicativo',
-        style: TextStyle(fontSize: 18, color: Colors.black54),
+    return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      body: SafeArea(
+        child: Stack(
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(top: 36, left: 18, right: 18),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Modo escuro
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        "MODO ESCURO",
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                      ),
+                      Switch(
+                        value: modoEscuro,
+                        activeColor: Colors.black,
+                        onChanged: (val) {
+                          setState(() {
+                            modoEscuro = val;
+                          });
+                          if (widget.onToggleTheme != null) {
+                            widget.onToggleTheme!(val);
+                          }
+                        },
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 32),
+
+                  // Perfil Usuário
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const PerfilUsuarioScreen()),
+                      );
+                    },
+                    child: const Text(
+                      "PERFIL USUARIO",
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+
+                  const Text(
+                    "VERSAO DO APLICATIVO",
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                  ),
+                  const SizedBox(height: 32),
+
+                  const Text(
+                    "LOCALIZAÇÃO",
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                  ),
+                ],
+              ),
+            ),
+
+            // Botão Sair
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 32),
+                child: SizedBox(
+                  width: 90,
+                  height: 36,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: Colors.red,
+                      elevation: 2,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      side: const BorderSide(color: Colors.black12),
+                    ),
+                    onPressed: () {
+                      // Implemente a ação de logout aqui
+                    },
+                    child: const Text(
+                      'Sair',
+                      style: TextStyle(
+                        color: Colors.red,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            )
+          ],
+        ),
       ),
     );
   }
