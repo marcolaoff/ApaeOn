@@ -109,7 +109,7 @@ class RegisterScreen extends StatelessWidget {
                       height: 36,
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Theme.of(context).cardColor,
+                          backgroundColor: Colors.white,
                           foregroundColor: isDark ? Colors.white : Colors.black,
                           elevation: 2,
                           shape: RoundedRectangleBorder(

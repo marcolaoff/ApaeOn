@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pi5/details_screen.dart';
 import 'perfil_screen.dart'; // Importe sua tela de perfil aqui
 
 class EventosScreen extends StatelessWidget {
@@ -96,8 +97,16 @@ class EventosTab extends StatelessWidget {
               ),
               textStyle: const TextStyle(fontSize: 15),
             ),
-            onPressed: () {},
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context)=> DetailsScreen(
+                )
+                ),
+              );
+            },
             child: const Text('Detalhes'),
+            
           ),
         ),
       ],
@@ -117,11 +126,12 @@ class MeusIngressosTab extends StatelessWidget {
         Card(
           margin: EdgeInsets.zero,
           elevation: 2,
+          color: Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
           child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16, ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -146,11 +156,6 @@ class MeusIngressosTab extends StatelessWidget {
                           style: TextStyle(fontSize: 13, color: Colors.black54),
                         ),
                       ],
-                    ),
-                    const Spacer(),
-                    IconButton(
-                      icon: Icon(Icons.more_vert, color: Colors.black54),
-                      onPressed: () {},
                     ),
                   ],
                 ),
@@ -180,19 +185,19 @@ class MeusIngressosTab extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(height: 36),
-        Align(
-          alignment: Alignment.centerRight,
-          child: SizedBox(
-            height: 42,
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.black,
-                foregroundColor: Colors.white,
-                elevation: 2,
+        const SizedBox(height: 12),
+        SizedBox(
+            width: 96,
+            height:34,
+            child: OutlinedButton(
+              style: OutlinedButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: Colors.black,
+                side:const BorderSide(color: Colors.black26),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(24),
+                  borderRadius: BorderRadius.circular(8),
                 ),
+                textStyle: const TextStyle(fontSize: 15),
               ),
               onPressed: () {},
               child: const Padding(
@@ -201,7 +206,6 @@ class MeusIngressosTab extends StatelessWidget {
               ),
             ),
           ),
-        ),
       ],
     );
   }
@@ -277,16 +281,46 @@ class _ConfiguracoesTabState extends State<ConfiguracoesTab> {
                   ),
                   const SizedBox(height: 32),
 
-                  const Text(
-                    "VERSAO DO APLICATIVO",
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                  GestureDetector(
+                    onTap: (){
+                      showDialog(
+                        context: context, 
+                        builder: (BuildContext context){
+                          return Dialog(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Container(
+                              padding: EdgeInsets.all(20),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text('Versão do app : Teste 1.0.3'),
+                                  SizedBox(height: 20),
+                                  ElevatedButton(
+                                    onPressed: (){
+                                      Navigator.of(context).pop();
+                                    },
+                                    child: Text('Fechar'),
+                                    ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                        );
+                    },
+                    child: Text("VERSÃO DO APLICATIVO", 
+                    style:TextStyle(fontWeight: FontWeight.bold, fontSize: 15,)),
                   ),
-                  const SizedBox(height: 32),
+                    const SizedBox(height: 32),
+
 
                   const Text(
                     "LOCALIZAÇÃO",
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                   ),
+                  
                 ],
               ),
             ),

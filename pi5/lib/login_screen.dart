@@ -24,10 +24,10 @@ class LoginScreen extends StatelessWidget {
                   color: Colors.grey[300],
                   shape: BoxShape.circle,
                 ),
-                child: const Center(
-                  child: Text(
-                    'Logo',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                child: ClipOval(
+                  child: Image.asset(
+                    'assets/logo.jpg',
+                    fit: BoxFit.cover,
                   ),
                 ),
               ),
