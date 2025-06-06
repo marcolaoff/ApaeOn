@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'login_screen.dart'; // Importe sua tela de login
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'login_screen.dart'; // Sua tela de login
 
 class PerfilUsuarioScreen extends StatefulWidget {
   final void Function(bool)? onToggleTheme;
@@ -17,8 +18,30 @@ class PerfilUsuarioScreen extends StatefulWidget {
 }
 
 class _PerfilUsuarioScreenState extends State<PerfilUsuarioScreen> {
-  String nome = "Fulaninho";
-  String email = "fulano@a.com";
+  String nome = '';
+  String email = '';
+  bool loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUser();
+  }
+
+  Future<void> _loadUser() async {
+    setState(() {
+      loading = true;
+    });
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+      setState(() {
+        nome = doc.data()?['nome'] ?? '';
+        email = doc.data()?['email'] ?? '';
+        loading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -38,13 +61,14 @@ class _PerfilUsuarioScreenState extends State<PerfilUsuarioScreen> {
         iconTheme: IconThemeData(color: isDark ? Colors.white : Colors.black),
       ),
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: SingleChildScrollView(
+      body: loading
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 18),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const SizedBox(height: 16),
-
             // Avatar
             Container(
               width: 120,
@@ -59,14 +83,12 @@ class _PerfilUsuarioScreenState extends State<PerfilUsuarioScreen> {
             ),
             const SizedBox(height: 8),
             TextButton(
-              onPressed: () {
-                // implementar troca de foto futuramente
-              },
+              onPressed: () {},
               child: const Text("Alterar Foto"),
             ),
             const SizedBox(height: 30),
 
-            // Campo Nome
+            // Nome
             TextField(
               controller: TextEditingController(text: nome),
               decoration: InputDecoration(
@@ -74,9 +96,7 @@ class _PerfilUsuarioScreenState extends State<PerfilUsuarioScreen> {
                 labelStyle: TextStyle(color: isDark ? Colors.white70 : Colors.black87),
                 suffixIcon: IconButton(
                   icon: const Icon(Icons.edit),
-                  onPressed: () {
-                    // implementar edição de nome
-                  },
+                  onPressed: () {},
                   color: isDark ? Colors.white : Colors.black,
                 ),
                 border: OutlineInputBorder(
@@ -84,12 +104,12 @@ class _PerfilUsuarioScreenState extends State<PerfilUsuarioScreen> {
                 ),
                 isDense: true,
               ),
-              enabled: false, // Apenas visualização, para editar remova o enabled!
+              enabled: false,
               style: TextStyle(color: isDark ? Colors.white : Colors.black),
             ),
             const SizedBox(height: 22),
 
-            // Campo Email
+            // Email
             TextField(
               controller: TextEditingController(text: email),
               decoration: InputDecoration(
@@ -97,9 +117,7 @@ class _PerfilUsuarioScreenState extends State<PerfilUsuarioScreen> {
                 labelStyle: TextStyle(color: isDark ? Colors.white70 : Colors.black87),
                 suffixIcon: IconButton(
                   icon: const Icon(Icons.edit),
-                  onPressed: () {
-                    // implementar edição de email
-                  },
+                  onPressed: () {},
                   color: isDark ? Colors.white : Colors.black,
                 ),
                 border: OutlineInputBorder(
@@ -107,7 +125,7 @@ class _PerfilUsuarioScreenState extends State<PerfilUsuarioScreen> {
                 ),
                 isDense: true,
               ),
-              enabled: false, // Apenas visualização, para editar remova o enabled!
+              enabled: false,
               style: TextStyle(color: isDark ? Colors.white : Colors.black),
             ),
 
