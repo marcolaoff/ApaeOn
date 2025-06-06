@@ -1,7 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-class RegisterScreen extends StatelessWidget {
+class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
+
+  @override
+  State<RegisterScreen> createState() => _RegisterScreenState();
+}
+
+class _RegisterScreenState extends State<RegisterScreen> {
+  final cpfController = TextEditingController();
+  final nomeController = TextEditingController();
+  final emailController = TextEditingController();
+  final senhaController = TextEditingController();
+
+  bool loading = false;
+  String? errorMsg;
 
   @override
   Widget build(BuildContext context) {
@@ -12,7 +27,6 @@ class RegisterScreen extends StatelessWidget {
       body: SafeArea(
         child: Stack(
           children: [
-            // Botão de voltar
             Positioned(
               top: 8,
               left: 8,
@@ -26,7 +40,6 @@ class RegisterScreen extends StatelessWidget {
                 },
               ),
             ),
-            // Conteúdo principal
             Center(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(horizontal: 32),
@@ -43,9 +56,8 @@ class RegisterScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 36),
-
-                    // Campo CPF
                     TextField(
+                      controller: cpfController,
                       decoration: InputDecoration(
                         labelText: 'Digite seu CPF',
                         labelStyle: TextStyle(color: isDark ? Colors.white70 : Colors.black87),
@@ -58,9 +70,8 @@ class RegisterScreen extends StatelessWidget {
                       style: TextStyle(color: isDark ? Colors.white : Colors.black),
                     ),
                     const SizedBox(height: 18),
-
-                    // Campo Nome
                     TextField(
+                      controller: nomeController,
                       decoration: InputDecoration(
                         labelText: 'Digite seu Nome',
                         labelStyle: TextStyle(color: isDark ? Colors.white70 : Colors.black87),
@@ -72,9 +83,8 @@ class RegisterScreen extends StatelessWidget {
                       style: TextStyle(color: isDark ? Colors.white : Colors.black),
                     ),
                     const SizedBox(height: 18),
-
-                    // Campo Email
                     TextField(
+                      controller: emailController,
                       decoration: InputDecoration(
                         labelText: 'Digite seu Email',
                         labelStyle: TextStyle(color: isDark ? Colors.white70 : Colors.black87),
@@ -87,9 +97,8 @@ class RegisterScreen extends StatelessWidget {
                       style: TextStyle(color: isDark ? Colors.white : Colors.black),
                     ),
                     const SizedBox(height: 18),
-
-                    // Campo Senha
                     TextField(
+                      controller: senhaController,
                       decoration: InputDecoration(
                         labelText: 'Digite sua Senha',
                         labelStyle: TextStyle(color: isDark ? Colors.white70 : Colors.black87),
@@ -101,9 +110,13 @@ class RegisterScreen extends StatelessWidget {
                       obscureText: true,
                       style: TextStyle(color: isDark ? Colors.white : Colors.black),
                     ),
-                    const SizedBox(height: 28),
+                    const SizedBox(height: 18),
 
-                    // Botão Registrar
+                    if (errorMsg != null)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: Text(errorMsg!, style: const TextStyle(color: Colors.red)),
+                      ),
                     SizedBox(
                       width: 120,
                       height: 36,
@@ -117,8 +130,14 @@ class RegisterScreen extends StatelessWidget {
                           ),
                           side: const BorderSide(color: Colors.black12),
                         ),
-                        onPressed: () {},
-                        child: const Text(
+                        onPressed: loading ? null : register,
+                        child: loading
+                            ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                            : const Text(
                           'Registrar',
                           style: TextStyle(fontWeight: FontWeight.bold),
                         ),
@@ -133,5 +152,58 @@ class RegisterScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Future<void> register() async {
+    setState(() {
+      loading = true;
+      errorMsg = null;
+    });
+
+    if (cpfController.text.trim().isEmpty ||
+        nomeController.text.trim().isEmpty ||
+        emailController.text.trim().isEmpty ||
+        senhaController.text.isEmpty) {
+      setState(() {
+        errorMsg = "Preencha todos os campos!";
+        loading = false;
+      });
+      return;
+    }
+
+    try {
+      final credential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: emailController.text.trim(),
+        password: senhaController.text,
+      );
+      final uid = credential.user?.uid;
+      if (uid == null) {
+        setState(() {
+          errorMsg = "Erro desconhecido ao registrar usuário.";
+          loading = false;
+        });
+        return;
+      }
+      await FirebaseFirestore.instance.collection('users').doc(uid).set({
+        'cpf': cpfController.text.trim(),
+        'nome': nomeController.text.trim(),
+        'email': emailController.text.trim(),
+        'isAdmin': false,
+      });
+
+      if (mounted) {
+        Navigator.of(context).pop();
+      }
+    } on FirebaseAuthException catch (e) {
+      setState(() {
+        errorMsg = e.message;
+        loading = false;
+      });
+    } catch (e) {
+      setState(() {
+        errorMsg = "Erro inesperado: $e";
+        loading = false;
+      });
+    }
   }
 }

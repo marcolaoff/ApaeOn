@@ -1,11 +1,22 @@
 import 'package:flutter/material.dart';
-import 'register_screen.dart'; // Importe sua tela de registro
-import 'eventos_screen.dart';  // Importe sua tela de eventos
+import 'package:firebase_auth/firebase_auth.dart';
+import 'register_screen.dart';
+import 'eventos_screen.dart';
 
-class LoginScreen extends StatelessWidget {
+class LoginScreen extends StatefulWidget {
   final void Function(bool)? onToggleTheme;
   final bool darkMode;
   const LoginScreen({super.key, this.onToggleTheme, this.darkMode = false});
+
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  final emailController = TextEditingController();
+  final senhaController = TextEditingController();
+  bool loading = false;
+  String? errorMsg;
 
   @override
   Widget build(BuildContext context) {
@@ -35,6 +46,7 @@ class LoginScreen extends StatelessWidget {
 
               // Campo de email
               TextField(
+                controller: emailController,
                 decoration: InputDecoration(
                   labelText: 'Email',
                   border: OutlineInputBorder(
@@ -48,6 +60,7 @@ class LoginScreen extends StatelessWidget {
 
               // Campo de senha
               TextField(
+                controller: senhaController,
                 decoration: InputDecoration(
                   labelText: 'Senha',
                   border: OutlineInputBorder(
@@ -57,7 +70,14 @@ class LoginScreen extends StatelessWidget {
                 ),
                 obscureText: true,
               ),
-              const SizedBox(height: 30),
+              const SizedBox(height: 18),
+
+              // Erro
+              if (errorMsg != null)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: Text(errorMsg!, style: const TextStyle(color: Colors.red)),
+                ),
 
               // Botão Login
               SizedBox(
@@ -73,18 +93,14 @@ class LoginScreen extends StatelessWidget {
                     ),
                     side: const BorderSide(color: Colors.black12),
                   ),
-                  onPressed: () {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => EventosScreen(
-                          onToggleTheme: onToggleTheme,
-                          darkMode: darkMode,
-                        ),
-                      ),
-                    );
-                  },
-                  child: const Text(
+                  onPressed: loading ? null : login,
+                  child: loading
+                      ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                      : const Text(
                     'Login',
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
@@ -125,5 +141,36 @@ class LoginScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Future<void> login() async {
+    setState(() {
+      loading = true;
+      errorMsg = null;
+    });
+
+    try {
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: emailController.text.trim(),
+        password: senhaController.text,
+      );
+
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => EventosScreen(
+              onToggleTheme: widget.onToggleTheme,
+              darkMode: widget.darkMode,
+            ),
+          ),
+        );
+      }
+    } on FirebaseAuthException catch (e) {
+      setState(() {
+        errorMsg = e.message;
+        loading = false;
+      });
+    }
   }
 }

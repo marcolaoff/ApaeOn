@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
-import 'login_screen.dart'; // Importe o arquivo da sua tela de login
+import 'package:firebase_core/firebase_core.dart';
+import 'login_screen.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(); // <-- inicializa Firebase (manual)
   runApp(const MainApp());
 }
 

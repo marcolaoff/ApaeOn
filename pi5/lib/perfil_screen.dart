@@ -1,7 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'login_screen.dart'; // Importe sua tela de login
 
 class PerfilUsuarioScreen extends StatefulWidget {
-  const PerfilUsuarioScreen({super.key});
+  final void Function(bool)? onToggleTheme;
+  final bool darkMode;
+
+  const PerfilUsuarioScreen({
+    super.key,
+    this.onToggleTheme,
+    this.darkMode = false,
+  });
 
   @override
   State<PerfilUsuarioScreen> createState() => _PerfilUsuarioScreenState();
@@ -18,7 +27,7 @@ class _PerfilUsuarioScreenState extends State<PerfilUsuarioScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Perfil de Usuario',
+          'Perfil de Usuário',
           style: TextStyle(
             color: isDark ? Colors.white : Colors.black,
           ),
@@ -61,7 +70,7 @@ class _PerfilUsuarioScreenState extends State<PerfilUsuarioScreen> {
             TextField(
               controller: TextEditingController(text: nome),
               decoration: InputDecoration(
-                labelText: "Nome do Usuario",
+                labelText: "Nome do Usuário",
                 labelStyle: TextStyle(color: isDark ? Colors.white70 : Colors.black87),
                 suffixIcon: IconButton(
                   icon: const Icon(Icons.edit),
@@ -104,7 +113,7 @@ class _PerfilUsuarioScreenState extends State<PerfilUsuarioScreen> {
 
             const SizedBox(height: 40),
 
-            // Botão apagar conta
+            // Botão Apagar Conta
             SizedBox(
               width: 160,
               height: 36,
@@ -130,9 +139,52 @@ class _PerfilUsuarioScreenState extends State<PerfilUsuarioScreen> {
                 ),
               ),
             ),
+
+            const SizedBox(height: 32),
+
+            // Botão Logout
+            SizedBox(
+              width: 120,
+              height: 36,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  foregroundColor: Colors.black,
+                  elevation: 1,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  side: const BorderSide(color: Colors.black12),
+                ),
+                onPressed: _logout,
+                child: const Text(
+                  'Logout',
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
           ],
         ),
       ),
     );
+  }
+
+  Future<void> _logout() async {
+    await FirebaseAuth.instance.signOut();
+    if (mounted) {
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(
+          builder: (context) => LoginScreen(
+            onToggleTheme: widget.onToggleTheme,
+            darkMode: widget.darkMode,
+          ),
+        ),
+            (route) => false,
+      );
+    }
   }
 }
