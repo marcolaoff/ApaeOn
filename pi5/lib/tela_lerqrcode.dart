@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
 
 class TelaQRCode extends StatefulWidget {
   const TelaQRCode({Key? key}) : super(key: key);
@@ -12,24 +12,23 @@ class TelaQRCode extends StatefulWidget {
 class _TelaQRCodeState extends State<TelaQRCode> {
   String resultado = '';
   bool carregando = false;
+  bool cameraAberta = false;
 
-  Future<void> validarQRCode() async {
-    String code = await FlutterBarcodeScanner.scanBarcode(
-      "#FFFFF",
-      "Cancelar",
-      false,
-      ScanMode.QR,
-    );
+  void _abrirLeitorQRCode() {
+    setState(() {
+      cameraAberta = true;
+      resultado = '';
+    });
+  }
 
-    if (code == '-1') return; // Cancelado
-
+  Future<void> _processarQRCode(String code) async {
     setState(() {
       carregando = true;
+      cameraAberta = false;
       resultado = '';
     });
 
     try {
-      // Busca pelo ticket no Firestore pelo campo qrCodeData
       final query = await FirebaseFirestore.instance
           .collection('tickets')
           .where('qrCodeData', isEqualTo: code)
@@ -81,7 +80,7 @@ class _TelaQRCodeState extends State<TelaQRCode> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               ElevatedButton.icon(
-                onPressed: carregando ? null : validarQRCode,
+                onPressed: carregando ? null : _abrirLeitorQRCode,
                 icon: const Icon(Icons.qr_code),
                 label: const Text('Validar Ingresso'),
               ),
@@ -102,6 +101,29 @@ class _TelaQRCodeState extends State<TelaQRCode> {
                     textAlign: TextAlign.center,
                   ),
                 ),
+              if (cameraAberta) ...[
+                const SizedBox(height: 24),
+                SizedBox(
+                  height: 300,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: MobileScanner(
+                      onDetect: (capture) {
+                        final barcode = capture.barcodes.first;
+                        if (barcode.rawValue == null) return;
+                        _processarQRCode(barcode.rawValue!);
+                      },
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                TextButton(
+                  onPressed: () {
+                    setState(() => cameraAberta = false);
+                  },
+                  child: const Text('Cancelar'),
+                ),
+              ],
             ],
           ),
         ),
