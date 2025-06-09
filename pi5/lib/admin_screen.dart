@@ -19,26 +19,18 @@ class AdminScreen extends StatelessWidget {
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       final pdfUrl = data['pdf_url'];
-      final pdfUri = Uri.parse(pdfUrl);
-      if (await canLaunchUrl(pdfUri)) {
-        await launchUrl(pdfUri, mode: LaunchMode.externalApplication);
+      if (pdfUrl != null && pdfUrl.toString().endsWith('.pdf')) {
+        final pdfUri = Uri.parse(pdfUrl);
+        if (await canLaunchUrl(pdfUri)) {
+          await launchUrl(pdfUri, mode: LaunchMode.externalApplication);
+        } else {
+          _mostrarErro(context, 'Não foi possível abrir o PDF.');
+        }
       } else {
-        _mostrarErro(context, 'Não foi possível abrir o PDF.');
+        _mostrarErro(context, 'URL do PDF inválida.');
       }
     } else {
       _mostrarErro(context, 'Erro ao gerar relatório.');
-    }
-  }
-
-  // Abre um PDF público externo para teste
-  Future<void> _abrirPDFExterno(BuildContext context) async {
-    // Exemplo de PDF público (Google Docs ou outro PDF acessível)
-    final testUrl = 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf';
-    final uri = Uri.parse(testUrl);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    } else {
-      _mostrarErro(context, 'Não foi possivel abrir o PDF de teste.');
     }
   }
 
@@ -105,24 +97,6 @@ class AdminScreen extends StatelessWidget {
                 },
               ),
             ),
-            const SizedBox(height: 16),
-            // Botão para teste externo de PDF
-            SizedBox(
-              width: double.infinity,
-              height: 54,
-              child: ElevatedButton.icon(
-                icon: const Icon(Icons.picture_as_pdf, color: Colors.white),
-                label: const Text('Testar PDF Externo', style: TextStyle(fontSize: 18, color: Colors.white)),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                  elevation: 3,
-                ),
-                onPressed: () {
-                  _abrirPDFExterno(context);
-                },
-              ),
-            ),
             const Spacer(),
             // Botão sair
             Center(
@@ -141,8 +115,11 @@ class AdminScreen extends StatelessWidget {
                   ),
                   onPressed: () async {
                     await FirebaseAuth.instance.signOut();
-                    if (context.mounted) {
+                    // Garante que o contexto ainda está ativo
+                    if (Navigator.of(context).canPop()) {
                       Navigator.of(context).popUntil((route) => route.isFirst);
+                    } else {
+                      Navigator.of(context).pushReplacementNamed('/');
                     }
                   },
                   child: const Text(
