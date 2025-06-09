@@ -7,25 +7,6 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:313216475573:android:897e92fb4c2a7ae4e7f9fc",
-        "android_client_info": {
-          "package_name": "com.apaeon.app"
-        }
-      },
-      "oauth_client": [],
-      "api_key": [
-        {
-          "current_key": "AIzaSyD_OzjYleW1-neaSYmEbQujPJgJmgdpNi0"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": []
-        }
-      }
-    },
-    {
-      "client_info": {
         "mobilesdk_app_id": "1:313216475573:android:1128d4cba2c4973be7f9fc",
         "android_client_info": {
           "package_name": "com.example.pi5"

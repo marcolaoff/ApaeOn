@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:pi5/details_screen.dart';
 import 'perfil_screen.dart'; // Importe sua tela de perfil aqui
+import 'package:firebase_auth/firebase_auth.dart';
+import 'login_screen.dart'; // Garanta que está no seu projeto
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'ingressosqrcode_screen.dart'; // Troque pelo caminho correto do seu projeto
+
 
 class EventosScreen extends StatelessWidget {
   final void Function(bool)? onToggleTheme;
@@ -42,192 +47,323 @@ class EventosScreen extends StatelessWidget {
   }
 }
 
-// EventosTab (sem alteração)
 class EventosTab extends StatelessWidget {
   const EventosTab({super.key});
+
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
-      children: [
-        const Text(
-          'Evento 01',
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 2),
-        const Text(
-          'Data : 00/00/00 as 00:00 hrs',
-          style: TextStyle(fontSize: 14, color: Colors.grey),
-        ),
-        const SizedBox(height: 18),
-        Container(
-          width: 140,
-          height: 120,
-          decoration: BoxDecoration(
-            color: Colors.grey[300],
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: const Icon(
-            Icons.image,
-            size: 56,
-            color: Colors.grey,
-          ),
-        ),
-        const SizedBox(height: 20),
-        const Text(
-          'Nome do evento',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-        ),
-        const SizedBox(height: 2),
-        const Text(
-          'Evento tal para tal coisa de tal coisa',
-          style: TextStyle(fontSize: 14, color: Colors.grey),
-        ),
-        const SizedBox(height: 12),
-        SizedBox(
-          width: 96,
-          height: 34,
-          child: OutlinedButton(
-            style: OutlinedButton.styleFrom(
-              backgroundColor: Colors.white,
-              foregroundColor: Colors.black,
-              side: const BorderSide(color: Colors.black26),
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance.collection('events').snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (snapshot.hasError) {
+          return const Center(child: Text('Erro ao carregar eventos'));
+        }
+        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+          return const Center(child: Text('Nenhum evento encontrado.'));
+        }
+
+        final eventos = snapshot.data!.docs;
+
+        return ListView.builder(
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 20),
+          itemCount: eventos.length,
+          itemBuilder: (context, index) {
+            final evento = eventos[index].data() as Map<String, dynamic>;
+            final nome = evento['nome'] ?? 'Sem nome';
+            final descricao = evento['descrição'] ?? '';
+            final dataTimestamp = evento['data'];
+            String dataFormatada = '';
+
+            if (dataTimestamp != null && dataTimestamp is Timestamp) {
+              final date = dataTimestamp.toDate();
+              dataFormatada =
+                  '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year} às ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
+            }
+
+            return Card(
+              margin: const EdgeInsets.only(bottom: 18),
+              elevation: 2,
+              color: Colors.white,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(12),
               ),
-              textStyle: const TextStyle(fontSize: 15),
-            ),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context)=> DetailsScreen(
-                )
-                ),
-              );
-            },
-            child: const Text('Detalhes'),
-            
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-// MeusIngressosTab (sem alteração)
-class MeusIngressosTab extends StatelessWidget {
-  const MeusIngressosTab({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 20),
-      children: [
-        Card(
-          margin: EdgeInsets.zero,
-          elevation: 2,
-          color: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16, ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const CircleAvatar(
-                      radius: 16,
-                      backgroundColor: Colors.black38,
-                      child: Text('A', style: TextStyle(color: Colors.white)),
-                    ),
-                    const SizedBox(width: 10),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
-                        Text(
-                          'Evento 01',
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    Row(
+                      children: [
+                        const CircleAvatar(
+                          radius: 16,
+                          backgroundColor: Colors.blueAccent,
+                          child: Icon(Icons.event, color: Colors.white, size: 18),
                         ),
-                        SizedBox(height: 2),
-                        Text(
-                          'Data-hora',
-                          style: TextStyle(fontSize: 13, color: Colors.black54),
+                        const SizedBox(width: 10),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              nome,
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              'Data: $dataFormatada',
+                              style: const TextStyle(fontSize: 13, color: Colors.black54),
+                            ),
+                          ],
                         ),
                       ],
                     ),
+                    const SizedBox(height: 14),
+                    Container(
+                      height: 100,
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: const Center(
+                        child: Icon(Icons.image, size: 48, color: Colors.grey),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      descricao,
+                      style: const TextStyle(fontSize: 13, color: Colors.black87),
+                    ),
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      width: 150,
+                      height: 34,
+                      child: OutlinedButton(
+                        style: OutlinedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          foregroundColor: Colors.black,
+                          side: const BorderSide(color: Colors.black26),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          textStyle: const TextStyle(fontSize: 15),
+                        ),
+                        onPressed: () {
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => DetailsScreen(eventId: eventos[index].id),
+    ),
+  );
+},
+                        child: const Text('Detalhes'),
+                      ),
+                    ),
                   ],
                 ),
-                const SizedBox(height: 14),
-                Container(
-                  height: 100,
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[300],
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: const Center(
-                    child: Icon(Icons.image, size: 48, color: Colors.grey),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  'Orgia de Traveco',
-                  style: TextStyle(fontWeight: FontWeight.w500, fontSize: 15),
-                ),
-                const SizedBox(height: 2),
-                const Text(
-                  'Detalhes',
-                  style: TextStyle(fontSize: 13, color: Colors.black54),
-                ),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(height: 12),
-        SizedBox(
-            width: 96,
-            height:34,
-            child: OutlinedButton(
-              style: OutlinedButton.styleFrom(
-                backgroundColor: Colors.white,
-                foregroundColor: Colors.black,
-                side:const BorderSide(color: Colors.black26),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                textStyle: const TextStyle(fontSize: 15),
               ),
-              onPressed: () {},
-              child: const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 18),
-                child: Text('Ver Ingressos', style: TextStyle(fontSize: 15)),
-              ),
-            ),
-          ),
-      ],
+            );
+          },
+        );
+      },
     );
   }
 }
 
-// ConfiguracoesTab recebe agora os parâmetros
-class ConfiguracoesTab extends StatefulWidget {
+
+
+
+class MeusIngressosTab extends StatelessWidget {
+  const MeusIngressosTab({super.key});
+
+  // Função que busca e agrupa tickets por evento
+  Future<Map<String, Map<String, dynamic>>> _getUserTicketsGroupedByEvent() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return {};
+
+    final ticketsSnap = await FirebaseFirestore.instance
+        .collection('tickets')
+        .where('userId', isEqualTo: user.uid)
+        .get();
+
+    final Map<String, Map<String, dynamic>> grouped = {};
+
+    for (var doc in ticketsSnap.docs) {
+      final ticket = doc.data();
+      final eventId = ticket['eventId'];
+      if (eventId == null || (eventId is String && eventId.trim().isEmpty)) continue;
+
+      if (!grouped.containsKey(eventId)) {
+        final eventSnap = await FirebaseFirestore.instance
+            .collection('events')
+            .doc(eventId)
+            .get();
+        if (!eventSnap.exists) continue;
+
+        grouped[eventId] = {
+          'evento': eventSnap.data(),
+          'tickets': <Map<String, dynamic>>[],
+        };
+      }
+      (grouped[eventId]!['tickets'] as List).add(ticket);
+    }
+    return grouped;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<Map<String, Map<String, dynamic>>>(
+      future: _getUserTicketsGroupedByEvent(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (snapshot.hasError) {
+          return const Center(child: Text('Erro ao carregar ingressos.'));
+        }
+        final data = snapshot.data ?? {};
+        if (data.isEmpty) {
+          return const Center(child: Text('Você ainda não possui ingressos.'));
+        }
+        final eventos = data.values.toList();
+        return ListView.builder(
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 20),
+          itemCount: eventos.length,
+          itemBuilder: (context, index) {
+            final evento = eventos[index]['evento'];
+            final tickets = eventos[index]['tickets'] as List;
+            final nome = evento?['nome'] ?? 'Evento sem nome';
+            final dataTimestamp = evento?['data'];
+            final descricao = evento?['descrição'] ?? '';
+            String dataFormatada = '';
+            if (dataTimestamp != null && dataTimestamp is Timestamp) {
+              final date = dataTimestamp.toDate();
+              dataFormatada =
+                  '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year} às ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
+            }
+            return Card(
+              margin: const EdgeInsets.only(bottom: 18),
+              elevation: 2,
+              color: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const CircleAvatar(
+                          radius: 16,
+                          backgroundColor: Colors.blueAccent,
+                          child: Icon(Icons.event, color: Colors.white, size: 18),
+                        ),
+                        const SizedBox(width: 10),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              nome,
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.bold, fontSize: 16),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              'Data: $dataFormatada',
+                              style: const TextStyle(
+                                  fontSize: 13, color: Colors.black54),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 14),
+                    Container(
+                      height: 100,
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: const Center(
+                        child: Icon(Icons.image, size: 48, color: Colors.grey),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      descricao,
+                      style: const TextStyle(fontSize: 13, color: Colors.black87),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'Quantidade de ingressos: ${tickets.length}',
+                      style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blueGrey),
+                    ),
+                    const SizedBox(height: 8),
+                    SizedBox(
+  width: 150,
+  height: 34,
+  child: OutlinedButton(
+    style: OutlinedButton.styleFrom(
+      backgroundColor: Colors.white,
+      foregroundColor: Colors.black,
+      side: const BorderSide(color: Colors.black26),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+      ),
+      textStyle: const TextStyle(fontSize: 15),
+    ),
+    onPressed: () {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => IngressosQRCodesScreen(
+            nomeEvento: nome,
+            tickets: List<Map<String, dynamic>>.from(tickets),
+          ),
+        ),
+      );
+    },
+    child: const Text('Ver Ingressos'),
+  ),
+),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+}
+
+class ConfiguracoesTab extends StatelessWidget {
   final void Function(bool)? onToggleTheme;
   final bool darkMode;
   const ConfiguracoesTab({super.key, this.onToggleTheme, this.darkMode = false});
 
-  @override
-  State<ConfiguracoesTab> createState() => _ConfiguracoesTabState();
-}
-
-class _ConfiguracoesTabState extends State<ConfiguracoesTab> {
-  late bool modoEscuro;
-
-  @override
-  void initState() {
-    super.initState();
-    modoEscuro = widget.darkMode;
+  Future<void> _logout(BuildContext context) async {
+    await FirebaseAuth.instance.signOut();
+    if (context.mounted) {
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(
+          builder: (context) => LoginScreen(
+            onToggleTheme: onToggleTheme,
+            darkMode: darkMode,
+          ),
+        ),
+        (route) => false,
+      );
+    }
   }
 
   @override
@@ -251,14 +387,11 @@ class _ConfiguracoesTabState extends State<ConfiguracoesTab> {
                         style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                       ),
                       Switch(
-                        value: modoEscuro,
+                        value: darkMode,
                         activeColor: Colors.black,
                         onChanged: (val) {
-                          setState(() {
-                            modoEscuro = val;
-                          });
-                          if (widget.onToggleTheme != null) {
-                            widget.onToggleTheme!(val);
+                          if (onToggleTheme != null) {
+                            onToggleTheme!(val);
                           }
                         },
                       ),
@@ -282,50 +415,86 @@ class _ConfiguracoesTabState extends State<ConfiguracoesTab> {
                   const SizedBox(height: 32),
 
                   GestureDetector(
-                    onTap: (){
+                    onTap: () {
                       showDialog(
-                        context: context, 
-                        builder: (BuildContext context){
+                        context: context,
+                        builder: (BuildContext context) {
                           return Dialog(
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(20),
+                              borderRadius: BorderRadius.circular(16),
                             ),
+                            elevation: 4,
+                            backgroundColor: Colors.transparent,
                             child: Container(
-                              padding: EdgeInsets.all(20),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(16),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black12,
+                                    blurRadius: 16,
+                                    offset: Offset(0, 8),
+                                  ),
+                                ],
+                              ),
+                              padding: const EdgeInsets.all(24),
                               child: Column(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Text('Versão do app : Teste 1.0.3'),
-                                  SizedBox(height: 20),
-                                  ElevatedButton(
-                                    onPressed: (){
-                                      Navigator.of(context).pop();
-                                    },
-                                    child: Text('Fechar'),
+                                  const Text(
+                                    'Versão do app : Teste 1.0.3',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
                                     ),
+                                  ),
+                                  const SizedBox(height: 20),
+                                  SizedBox(
+                                    width: 100,
+                                    height: 36,
+                                    child: ElevatedButton(
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.white,
+                                        foregroundColor: Colors.black,
+                                        elevation: 1,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(12),
+                                        ),
+                                        side: const BorderSide(color: Colors.black12),
+                                        textStyle: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      onPressed: () {
+                                        Navigator.of(context).pop();
+                                      },
+                                      child: const Text('Fechar'),
+                                    ),
+                                  ),
                                 ],
                               ),
                             ),
                           );
                         },
-                        );
+                      );
                     },
-                    child: Text("VERSÃO DO APLICATIVO", 
-                    style:TextStyle(fontWeight: FontWeight.bold, fontSize: 15,)),
+                    child: const Text(
+                      "VERSÃO DO APLICATIVO",
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                    ),
                   ),
-                    const SizedBox(height: 32),
 
+                  const SizedBox(height: 32),
 
                   const Text(
                     "LOCALIZAÇÃO",
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                   ),
-                  
                 ],
               ),
             ),
 
-            // Botão Sair
+            // Botão Sair (agora faz logout real!)
             Align(
               alignment: Alignment.bottomCenter,
               child: Padding(
@@ -343,9 +512,7 @@ class _ConfiguracoesTabState extends State<ConfiguracoesTab> {
                       ),
                       side: const BorderSide(color: Colors.black12),
                     ),
-                    onPressed: () {
-                      // Implemente a ação de logout aqui
-                    },
+                    onPressed: () => _logout(context),
                     child: const Text(
                       'Sair',
                       style: TextStyle(

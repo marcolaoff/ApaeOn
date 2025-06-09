@@ -1,53 +1,111 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class TelaQRCode extends StatefulWidget {
-  const TelaQRCode ({key? key}) : super(key: key);
+  const TelaQRCode({Key? key}) : super(key: key);
 
   @override
   State<TelaQRCode> createState() => _TelaQRCodeState();
-  }
+}
 
-  class _TelaQRCodeState extends State<TelaQRCode> {
-    String ticket = '';
-    List<String> tickets = [];
+class _TelaQRCodeState extends State<TelaQRCode> {
+  String resultado = '';
+  bool carregando = false;
 
-    readQRCode() async {
-      String code = await FlutterBarcodeScanner.scanBarcode(
-        "#FFFFF",
-        "Cancelar",
-        false,
-        ScanMode.QR,
-      );
-      setState(() => ticket = code != '-1' ? code : 'Não validado');
+  Future<void> validarQRCode() async {
+    String code = await FlutterBarcodeScanner.scanBarcode(
+      "#FFFFF",
+      "Cancelar",
+      false,
+      ScanMode.QR,
+    );
+
+    if (code == '-1') return; // Cancelado
+
+    setState(() {
+      carregando = true;
+      resultado = '';
+    });
+
+    try {
+      // Busca pelo ticket no Firestore pelo campo qrCodeData
+      final query = await FirebaseFirestore.instance
+          .collection('tickets')
+          .where('qrCodeData', isEqualTo: code)
+          .limit(1)
+          .get();
+
+      if (query.docs.isEmpty) {
+        setState(() {
+          resultado = 'Ingresso NÃO encontrado!';
+          carregando = false;
+        });
+        return;
+      }
+
+      final doc = query.docs.first;
+      final ticket = doc.data();
+
+      if (ticket['status'] == 'inativo') {
+        setState(() {
+          resultado = 'Ingresso já foi utilizado!';
+          carregando = false;
+        });
+        return;
+      }
+
+      // Atualiza o status para "inativo"
+      await doc.reference.update({'status': 'inativo'});
+
+      setState(() {
+        resultado = 'Ingresso validado com SUCESSO!';
+        carregando = false;
+      });
+    } catch (e) {
+      setState(() {
+        resultado = 'Erro ao validar ingresso!';
+        carregando = false;
+      });
     }
-
   }
+
   @override
-  Widget build(BuildContext context){
+  Widget build(BuildContext context) {
     return Scaffold(
-      body: SizedBox(
-        width: MediaQuery.of(context).size.width,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            if (ticket != '')
-              Padding(
-                padding: const EdgeInsets.only(bottom: 24.0),
-                child: Text(
-                  'Ticket: $ticket',
-                  style: const TextStyle(fontSize: 20),
-                ),
+      appBar: AppBar(title: const Text('Validação de Ingressos')),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ElevatedButton.icon(
+                onPressed: carregando ? null : validarQRCode,
+                icon: const Icon(Icons.qr_code),
+                label: const Text('Validar Ingresso'),
               ),
-            ElevatedButton.icon(
-              onPressed: realQRCode,
-              icon: const Icon(Icons.qr_code),
-              local: const Text('Validar')
-            ),
-          ],
-        )
+              const SizedBox(height: 32),
+              if (carregando) const CircularProgressIndicator(),
+              if (resultado.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(top: 20),
+                  child: Text(
+                    resultado,
+                    style: TextStyle(
+                      color: resultado.contains('SUCESSO')
+                          ? Colors.green
+                          : Colors.red,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+            ],
+          ),
+        ),
       ),
     );
   }
-} 
+}

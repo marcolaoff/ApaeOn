@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'login_screen.dart';
+import 'firebase_options.dart'; // <-- IMPORTANTE!
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(); // <-- inicializa Firebase (manual)
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform, // <-- Usando as opções certas
+  );
   runApp(const MainApp());
 }
 
