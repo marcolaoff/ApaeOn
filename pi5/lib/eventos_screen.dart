@@ -336,17 +336,50 @@ class MeusIngressosTab extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 14),
-                    Container(
-                      height: 100,
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        color: Colors.grey[300],
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: const Center(
-                        child: Icon(Icons.image, size: 48, color: Colors.grey),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(6),
+                      child: Builder(
+                        builder: (context) {
+                          String? imageUrl = evento?['imageUrl']?.toString();
+                          if (imageUrl == null || imageUrl.isEmpty) {
+                            return Container(
+                              height: 100,
+                              width: double.infinity,
+                              color: Colors.grey[300],
+                              child: const Icon(Icons.broken_image, size: 48, color: Colors.grey),
+                            );
+                          }
+                          imageUrl = imageUrl.replaceAll('"', '').trim();
+                          if (!imageUrl.startsWith('http')) {
+                            return Container(
+                              height: 100,
+                              width: double.infinity,
+                              color: Colors.yellow[200],
+                              child: Center(
+                                child: Text(
+                                  'URL INVÁLIDA:\n$imageUrl',
+                                  style: const TextStyle(color: Colors.black, fontSize: 10),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            );
+                          }
+                          return Image.network(
+                            imageUrl,
+                            height: 100,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => Container(
+                              height: 100,
+                              width: double.infinity,
+                              color: Colors.grey[300],
+                              child: const Icon(Icons.broken_image, size: 48, color: Colors.grey),
+                            ),
+                          );
+                        },
                       ),
                     ),
+
                     const SizedBox(height: 16),
                     Text(
                       descricao,

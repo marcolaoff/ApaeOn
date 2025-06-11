@@ -44,11 +44,13 @@ class DetailsScreen extends StatelessWidget {
           final descricao = data['descrição'] ?? '';
           final infoAdicionais = data['Informações Adicionais'] ?? '';
           final dataTimestamp = data['data'];
+          final imageUrl = data['imageUrl'] as String?; // pode ser null
+
           String dataFormatada = '';
           if (dataTimestamp != null && dataTimestamp is Timestamp) {
             final date = dataTimestamp.toDate();
             dataFormatada =
-                '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year} às ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
+            '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year} às ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
           }
 
           return Center(
@@ -105,7 +107,21 @@ class DetailsScreen extends StatelessWidget {
                           color: Colors.grey[300],
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: const Center(
+                        child: imageUrl != null && imageUrl.isNotEmpty
+                            ? ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: Image.network(
+                            imageUrl,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) =>
+                            const Center(child: Icon(Icons.broken_image, size: 56, color: Colors.grey)),
+                            loadingBuilder: (context, child, loadingProgress) {
+                              if (loadingProgress == null) return child;
+                              return const Center(child: CircularProgressIndicator());
+                            },
+                          ),
+                        )
+                            : const Center(
                           child: Icon(Icons.image, size: 56, color: Colors.grey),
                         ),
                       ),
