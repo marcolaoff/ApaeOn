@@ -26,34 +26,40 @@ class _IngressoScreenState extends State<IngressoScreen> {
     required String eventId, // Recebe o eventId
   }) async {
     final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
+if (user == null) return;
 
-    final ticketsCollection = FirebaseFirestore.instance.collection('tickets');
-    final now = DateTime.now();
+// PEGUE O E-MAIL DO USUÁRIO LOGADO
+final userEmail = user.email ?? '';
 
-    // Crie os tickets "Normal"
-    for (int i = 0; i < quantidadeNormal; i++) {
-      await ticketsCollection.add({
-        'userId': user.uid,
-        'tipo': 'Normal',
-        'qrCodeData': 'QR-NORMAL-${user.uid}-${now.millisecondsSinceEpoch}-$i',
-        'criacao': now,
-        'status': 'ativo',
-        'eventId': eventId, // Salva o eventId aqui!
-      });
-    }
+final ticketsCollection = FirebaseFirestore.instance.collection('tickets');
+final now = DateTime.now();
 
-    // Crie os tickets "Meia"
-    for (int i = 0; i < quantidadeMeia; i++) {
-      await ticketsCollection.add({
-        'userId': user.uid,
-        'tipo': 'Meia',
-        'qrCodeData': 'QR-MEIA-${user.uid}-${now.millisecondsSinceEpoch}-$i',
-        'criacao': now,
-        'status': 'ativo',
-        'eventId': eventId, // Salva o eventId aqui!
-      });
-    }
+// Crie os tickets "Normal"
+for (int i = 0; i < quantidadeNormal; i++) {
+  await ticketsCollection.add({
+    'userId': user.uid,
+    'email': userEmail, // NOVO CAMPO!
+    'tipo': 'Normal',
+    'qrCodeData': 'QR-NORMAL-${user.uid}-${now.millisecondsSinceEpoch}-$i',
+    'criacao': now,
+    'status': 'ativo',
+    'eventId': eventId,
+  });
+}
+
+// Crie os tickets "Meia"
+for (int i = 0; i < quantidadeMeia; i++) {
+  await ticketsCollection.add({
+    'userId': user.uid,
+    'email': userEmail, // NOVO CAMPO!
+    'tipo': 'Meia',
+    'qrCodeData': 'QR-MEIA-${user.uid}-${now.millisecondsSinceEpoch}-$i',
+    'criacao': now,
+    'status': 'ativo',
+    'eventId': eventId,
+  });
+}
+
   }
 
   @override

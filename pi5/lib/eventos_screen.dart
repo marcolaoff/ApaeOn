@@ -71,108 +71,162 @@ class EventosTab extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 20),
           itemCount: eventos.length,
           itemBuilder: (context, index) {
-            final evento = eventos[index].data() as Map<String, dynamic>;
-            final nome = evento['nome'] ?? 'Sem nome';
-            final descricao = evento['descrição'] ?? '';
-            final dataTimestamp = evento['data'];
-            String dataFormatada = '';
+  final evento = eventos[index].data() as Map<String, dynamic>;
+  final nome = evento['nome'] ?? 'Sem nome';
+  final descricao = evento['descrição'] ?? '';
+  final dataTimestamp = evento['data'];
+  String dataFormatada = '';
+  if (dataTimestamp != null && dataTimestamp is Timestamp) {
+    final date = dataTimestamp.toDate();
+    dataFormatada =
+        '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year} às ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
+  }
 
-            if (dataTimestamp != null && dataTimestamp is Timestamp) {
-              final date = dataTimestamp.toDate();
-              dataFormatada =
-                  '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year} às ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
-            }
-
-            return Card(
-              margin: const EdgeInsets.only(bottom: 18),
-              elevation: 2,
-              color: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+  return Card(
+    margin: const EdgeInsets.only(bottom: 18),
+    elevation: 2,
+    color: Colors.white,
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(12),
+    ),
+    child: Padding(
+      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const CircleAvatar(
+                radius: 16,
+                backgroundColor: Colors.blueAccent,
+                child: Icon(Icons.event, color: Colors.white, size: 18),
               ),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        const CircleAvatar(
-                          radius: 16,
-                          backgroundColor: Colors.blueAccent,
-                          child: Icon(Icons.event, color: Colors.white, size: 18),
-                        ),
-                        const SizedBox(width: 10),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              nome,
-                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              'Data: $dataFormatada',
-                              style: const TextStyle(fontSize: 13, color: Colors.black54),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 14),
-                    Container(
-                      height: 100,
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        color: Colors.grey[300],
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: const Center(
-                        child: Icon(Icons.image, size: 48, color: Colors.grey),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      descricao,
-                      style: const TextStyle(fontSize: 13, color: Colors.black87),
-                    ),
-                    const SizedBox(height: 12),
-                    SizedBox(
-                      width: 150,
-                      height: 34,
-                      child: OutlinedButton(
-                        style: OutlinedButton.styleFrom(
-                          backgroundColor: Colors.white,
-                          foregroundColor: Colors.black,
-                          side: const BorderSide(color: Colors.black26),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          textStyle: const TextStyle(fontSize: 15),
-                        ),
-                        onPressed: () {
-  Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (context) => DetailsScreen(eventId: eventos[index].id),
+              const SizedBox(width: 10),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    nome,
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'Data: $dataFormatada',
+                    style: const TextStyle(fontSize: 13, color: Colors.black54),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+
+          // IMAGEM DO EVENTO (corrigida)
+          ClipRRect(
+  borderRadius: BorderRadius.circular(6),
+  child: Builder(
+    builder: (context) {
+      // Pega e mostra no console o valor do campo
+      String? imageUrl = evento['imageUrl']?.toString();
+      print('DEBUG - Campo imageUrl do evento: $imageUrl');
+      if (imageUrl == null) {
+        return Container(
+          height: 100,
+          width: double.infinity,
+          color: Colors.red[200],
+          child: const Center(
+            child: Text(
+              'URL NULA',
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        );
+      }
+      imageUrl = imageUrl.replaceAll('"', '').trim();
+      if (imageUrl.isEmpty) {
+        return Container(
+          height: 100,
+          width: double.infinity,
+          color: Colors.orange[200],
+          child: const Center(
+            child: Text(
+              'URL VAZIA',
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        );
+      }
+      if (!imageUrl.startsWith('http')) {
+        return Container(
+          height: 100,
+          width: double.infinity,
+          color: Colors.yellow[200],
+          child: Center(
+            child: Text(
+              'URL INVÁLIDA:\n$imageUrl',
+              style: const TextStyle(color: Colors.black, fontSize: 10),
+              textAlign: TextAlign.center,
+            ),
+          ),
+        );
+      }
+      return Image.network(
+        imageUrl,
+        height: 100,
+        width: double.infinity,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => Container(
+          height: 100,
+          width: double.infinity,
+          color: Colors.grey[300],
+          child: const Icon(Icons.broken_image, size: 48, color: Colors.grey),
+        ),
+      );
+    },
+  ),
+),
+
+
+          const SizedBox(height: 16),
+          Text(
+            descricao,
+            style: const TextStyle(fontSize: 13, color: Colors.black87),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: 150,
+            height: 34,
+            child: OutlinedButton(
+              style: OutlinedButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: Colors.black,
+                side: const BorderSide(color: Colors.black26),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                textStyle: const TextStyle(fontSize: 15),
+              ),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => DetailsScreen(eventId: eventos[index].id),
+                  ),
+                );
+              },
+              child: const Text('Detalhes'),
+            ),
+          ),
+        ],
+      ),
     ),
   );
 },
-                        child: const Text('Detalhes'),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
+
         );
       },
     );
   }
 }
-
-
 
 
 class MeusIngressosTab extends StatelessWidget {

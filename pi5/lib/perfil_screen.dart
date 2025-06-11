@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'dart:io';
 import 'login_screen.dart'; // Importe sua tela de login aqui
 
 class PerfilUsuarioScreen extends StatefulWidget {
@@ -23,6 +26,8 @@ class _PerfilUsuarioScreenState extends State<PerfilUsuarioScreen> {
   bool loading = true;
   bool editandoNome = false;
   bool editandoEmail = false;
+  String? fotoUrl;
+  bool alterandoFoto = false;
 
   @override
   void initState() {
@@ -37,6 +42,7 @@ class _PerfilUsuarioScreenState extends State<PerfilUsuarioScreen> {
       final doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
       _nomeController.text = doc.data()?['nome'] ?? '';
       _emailController.text = user.email ?? '';
+      fotoUrl = doc.data()?['fotoUrl'];
     }
     setState(() => loading = false);
   }
@@ -72,13 +78,74 @@ class _PerfilUsuarioScreenState extends State<PerfilUsuarioScreen> {
     }
   }
 
+  Future<void> _alterarFoto() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(source: ImageSource.gallery, imageQuality: 70);
+    if (picked == null) return;
+
+    setState(() => alterandoFoto = true);
+
+    try {
+      // Faz upload no Firebase Storage
+      final file = File(picked.path);
+      final ref = FirebaseStorage.instance.ref('usuarios/${user.uid}/foto.jpg');
+      await ref.putFile(file);
+
+      // Pega a url
+      final url = await ref.getDownloadURL();
+
+      // Atualiza no Firestore
+      await FirebaseFirestore.instance.collection('users').doc(user.uid).update({
+        'fotoUrl': url,
+      });
+
+      setState(() {
+        fotoUrl = url;
+        alterandoFoto = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Foto atualizada!")),
+      );
+    } catch (e) {
+      setState(() => alterandoFoto = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Erro ao atualizar foto: $e")),
+      );
+    }
+  }
+
   Future<void> _apagarConta() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
     final uid = user.uid;
     try {
+      // Excluir todos os ingressos do usuário
+      final ingressosSnap = await FirebaseFirestore.instance
+          .collection('tickets')
+          .where('userId', isEqualTo: uid)
+          .get();
+      for (final doc in ingressosSnap.docs) {
+        await doc.reference.delete();
+      }
+
+      // Excluir imagem do Storage
+      final fotoRef = FirebaseStorage.instance.ref('usuarios/$uid/foto.jpg');
+      try {
+        await fotoRef.delete();
+      } catch (_) {
+        // Se não existir, só ignora
+      }
+
+      // Excluir dados do Firestore
       await FirebaseFirestore.instance.collection('users').doc(uid).delete();
+
+      // Excluir usuário do Auth
       await user.delete();
+
       if (mounted) {
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(
@@ -130,24 +197,38 @@ class _PerfilUsuarioScreenState extends State<PerfilUsuarioScreen> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   const SizedBox(height: 16),
-                  // Avatar
-                  Container(
-                    width: 120,
-                    height: 120,
-                    decoration: BoxDecoration(
-                      color: isDark ? Colors.grey[700] : Colors.grey[300],
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Center(
-                      child: Icon(Icons.person, size: 60, color: Colors.grey),
-                    ),
+                  // Avatar com botão de alterar foto
+                  Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      CircleAvatar(
+                        radius: 60,
+                        backgroundColor: isDark ? Colors.grey[700] : Colors.grey[300],
+                        backgroundImage: (fotoUrl != null && fotoUrl!.isNotEmpty)
+                            ? NetworkImage(fotoUrl!)
+                            : null,
+                        child: (fotoUrl == null || fotoUrl!.isEmpty)
+                            ? const Icon(Icons.person, size: 60, color: Colors.grey)
+                            : null,
+                      ),
+                      if (alterandoFoto)
+                        const Positioned.fill(
+                          child: Center(child: CircularProgressIndicator()),
+                        ),
+                      Positioned(
+                        bottom: 8,
+                        right: 8,
+                        child: CircleAvatar(
+                          backgroundColor: Colors.black54,
+                          child: IconButton(
+                            icon: const Icon(Icons.camera_alt, color: Colors.white, size: 20),
+                            onPressed: alterandoFoto ? null : _alterarFoto,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 8),
-                  TextButton(
-                    onPressed: () {},
-                    child: const Text("Alterar Foto"),
-                  ),
-                  const SizedBox(height: 30),
+                  const SizedBox(height: 24),
 
                   // Nome - campo editável
                   TextField(
@@ -168,6 +249,15 @@ class _PerfilUsuarioScreenState extends State<PerfilUsuarioScreen> {
                             ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(
+                          color: editandoNome ? Colors.blueAccent : Colors.grey,
+                        ),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(
+                          color: editandoNome ? Colors.blueAccent : Colors.grey,
+                        ),
                       ),
                       isDense: true,
                     ),
@@ -195,6 +285,15 @@ class _PerfilUsuarioScreenState extends State<PerfilUsuarioScreen> {
                             ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(
+                          color: editandoEmail ? Colors.blueAccent : Colors.grey,
+                        ),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(
+                          color: editandoEmail ? Colors.blueAccent : Colors.grey,
+                        ),
                       ),
                       isDense: true,
                     ),

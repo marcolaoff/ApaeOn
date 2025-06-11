@@ -13,6 +13,7 @@ class _TelaQRCodeState extends State<TelaQRCode> {
   String resultado = '';
   bool carregando = false;
   bool cameraAberta = false;
+  bool processando = false; // Adicionado
 
   void _abrirLeitorQRCode() {
     setState(() {
@@ -22,6 +23,7 @@ class _TelaQRCodeState extends State<TelaQRCode> {
   }
 
   Future<void> _processarQRCode(String code) async {
+    print('Lido QR: $code'); // Para debug
     setState(() {
       carregando = true;
       cameraAberta = false;
@@ -110,8 +112,11 @@ class _TelaQRCodeState extends State<TelaQRCode> {
                     child: MobileScanner(
                       onDetect: (capture) {
                         final barcode = capture.barcodes.first;
-                        if (barcode.rawValue == null) return;
-                        _processarQRCode(barcode.rawValue!);
+                        if (barcode.rawValue == null || processando) return;
+                        processando = true; // trava até terminar
+                        _processarQRCode(barcode.rawValue!).whenComplete(() {
+                          processando = false;
+                        });
                       },
                     ),
                   ),
