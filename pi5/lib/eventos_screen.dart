@@ -232,44 +232,53 @@ class EventosTab extends StatelessWidget {
 class MeusIngressosTab extends StatelessWidget {
   const MeusIngressosTab({super.key});
 
-  // Função que busca e agrupa tickets por evento
-  Future<Map<String, Map<String, dynamic>>> _getUserTicketsGroupedByEvent() async {
+  // Stream de tickets do usuário agrupados por evento
+  Stream<Map<String, Map<String, dynamic>>> _streamUserTicketsGroupedByEvent() async* {
     final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return {};
-
-    final ticketsSnap = await FirebaseFirestore.instance
+    if (user == null) {
+      yield {};
+      return;
+    }
+    // Escuta os tickets em tempo real
+    await for (final ticketsSnap in FirebaseFirestore.instance
         .collection('tickets')
         .where('userId', isEqualTo: user.uid)
-        .get();
+        .snapshots()) {
+      final Map<String, Map<String, dynamic>> grouped = {};
 
-    final Map<String, Map<String, dynamic>> grouped = {};
+      for (var doc in ticketsSnap.docs) {
+        final ticket = doc.data();
+        // Somente ingressos válidos!
+        if (ticket['status'] != 'ativo') continue;
+        final eventId = ticket['eventId'];
+        if (eventId == null || (eventId is String && eventId.trim().isEmpty)) continue;
 
-    for (var doc in ticketsSnap.docs) {
-      final ticket = doc.data();
-      final eventId = ticket['eventId'];
-      if (eventId == null || (eventId is String && eventId.trim().isEmpty)) continue;
+        if (!grouped.containsKey(eventId)) {
+          final eventSnap = await FirebaseFirestore.instance
+              .collection('events')
+              .doc(eventId)
+              .get();
+          if (!eventSnap.exists) continue;
 
-      if (!grouped.containsKey(eventId)) {
-        final eventSnap = await FirebaseFirestore.instance
-            .collection('events')
-            .doc(eventId)
-            .get();
-        if (!eventSnap.exists) continue;
-
-        grouped[eventId] = {
-          'evento': eventSnap.data(),
-          'tickets': <Map<String, dynamic>>[],
-        };
+          grouped[eventId] = {
+            'evento': eventSnap.data()!..['id'] = eventSnap.id, // Adiciona o id do evento
+            'tickets': <Map<String, dynamic>>[],
+          };
+        }
+        final ticketMap = Map<String, dynamic>.from(ticket);
+        ticketMap['ticketId'] = doc.id;
+        (grouped[eventId]!['tickets'] as List).add(ticketMap);
       }
-      (grouped[eventId]!['tickets'] as List).add(ticket);
+      // Remova eventos SEM ingressos válidos
+      grouped.removeWhere((_, v) => (v['tickets'] as List).isEmpty);
+      yield grouped;
     }
-    return grouped;
   }
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<Map<String, Map<String, dynamic>>>(
-      future: _getUserTicketsGroupedByEvent(),
+    return StreamBuilder<Map<String, Map<String, dynamic>>>(
+      stream: _streamUserTicketsGroupedByEvent(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
@@ -291,11 +300,12 @@ class MeusIngressosTab extends StatelessWidget {
             final nome = evento?['nome'] ?? 'Evento sem nome';
             final dataTimestamp = evento?['data'];
             final descricao = evento?['descrição'] ?? '';
+            final eventId = evento?['id'] ?? ''; // Garante o ID
             String dataFormatada = '';
             if (dataTimestamp != null && dataTimestamp is Timestamp) {
               final date = dataTimestamp.toDate();
               dataFormatada =
-                  '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year} às ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
+              '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year} às ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
             }
             return Card(
               margin: const EdgeInsets.only(bottom: 18),
@@ -395,32 +405,32 @@ class MeusIngressosTab extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
                     SizedBox(
-  width: 150,
-  height: 34,
-  child: OutlinedButton(
-    style: OutlinedButton.styleFrom(
-      backgroundColor: Colors.white,
-      foregroundColor: Colors.black,
-      side: const BorderSide(color: Colors.black26),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
-      ),
-      textStyle: const TextStyle(fontSize: 15),
-    ),
-    onPressed: () {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => IngressosQRCodesScreen(
-            nomeEvento: nome,
-            tickets: List<Map<String, dynamic>>.from(tickets),
-          ),
-        ),
-      );
-    },
-    child: const Text('Ver Ingressos'),
-  ),
-),
+                      width: 150,
+                      height: 34,
+                      child: OutlinedButton(
+                        style: OutlinedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          foregroundColor: Colors.black,
+                          side: const BorderSide(color: Colors.black26),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          textStyle: const TextStyle(fontSize: 15),
+                        ),
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => IngressosQRCodesScreen(
+                                nomeEvento: nome,
+                                eventId: eventId, // Passe só o nomeEvento e o eventId
+                              ),
+                            ),
+                          );
+                        },
+                        child: const Text('Ver Ingressos'),
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -431,6 +441,8 @@ class MeusIngressosTab extends StatelessWidget {
     );
   }
 }
+
+
 
 class ConfiguracoesTab extends StatelessWidget {
   final void Function(bool)? onToggleTheme;
