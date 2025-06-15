@@ -3,7 +3,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class RegisterScreen extends StatefulWidget {
-  const RegisterScreen({super.key});
+  final void Function(bool)? onToggleTheme;
+  final bool darkMode;
+  const RegisterScreen({super.key, this.onToggleTheme, this.darkMode = false});
 
   @override
   State<RegisterScreen> createState() => _RegisterScreenState();
@@ -21,9 +23,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final backgroundColor = Theme.of(context).scaffoldBackgroundColor;
+    final textColor = Theme.of(context).textTheme.bodyLarge?.color;
+    final cardColor = Theme.of(context).cardColor;
 
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: backgroundColor,
       body: SafeArea(
         child: Stack(
           children: [
@@ -52,7 +57,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
-                        color: isDark ? Colors.white : Colors.black,
+                        color: textColor,
                       ),
                     ),
                     const SizedBox(height: 36),
@@ -64,10 +69,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
+                        filled: true,
+                        fillColor: isDark ? Colors.grey[900] : Colors.white,
                         isDense: true,
                       ),
                       keyboardType: TextInputType.number,
-                      style: TextStyle(color: isDark ? Colors.white : Colors.black),
+                      style: TextStyle(color: textColor),
                     ),
                     const SizedBox(height: 18),
                     TextField(
@@ -78,9 +85,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
+                        filled: true,
+                        fillColor: isDark ? Colors.grey[900] : Colors.white,
                         isDense: true,
                       ),
-                      style: TextStyle(color: isDark ? Colors.white : Colors.black),
+                      style: TextStyle(color: textColor),
                     ),
                     const SizedBox(height: 18),
                     TextField(
@@ -91,10 +100,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
+                        filled: true,
+                        fillColor: isDark ? Colors.grey[900] : Colors.white,
                         isDense: true,
                       ),
                       keyboardType: TextInputType.emailAddress,
-                      style: TextStyle(color: isDark ? Colors.white : Colors.black),
+                      style: TextStyle(color: textColor),
                     ),
                     const SizedBox(height: 18),
                     TextField(
@@ -105,13 +116,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
+                        filled: true,
+                        fillColor: isDark ? Colors.grey[900] : Colors.white,
                         isDense: true,
                       ),
                       obscureText: true,
-                      style: TextStyle(color: isDark ? Colors.white : Colors.black),
+                      style: TextStyle(color: textColor),
                     ),
                     const SizedBox(height: 18),
-
                     if (errorMsg != null)
                       Padding(
                         padding: const EdgeInsets.only(bottom: 12),
@@ -122,25 +134,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       height: 36,
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white,
+                          backgroundColor: cardColor,
                           foregroundColor: isDark ? Colors.white : Colors.black,
                           elevation: 2,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(16),
                           ),
-                          side: const BorderSide(color: Colors.black12),
+                          side: BorderSide(color: isDark ? Colors.white12 : Colors.black12),
+                          textStyle: const TextStyle(fontWeight: FontWeight.bold),
                         ),
                         onPressed: loading ? null : register,
                         child: loading
                             ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                            : const Text(
-                          'Registrar',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            : const Text('Registrar'),
                       ),
                     ),
                     const SizedBox(height: 16),

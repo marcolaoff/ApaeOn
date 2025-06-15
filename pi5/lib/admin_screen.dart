@@ -65,7 +65,7 @@ class _GerenciarEventosTabState extends State<GerenciarEventosTab> {
 
   String nome = dataMap?['nome']?.toString() ?? '';
   String descricao = dataMap?['descrição']?.toString() ?? '';
-  String informacoesAdicionais = dataMap?['informacoesAdicionais']?.toString() ?? '';
+  String informacoesAdicionais = dataMap?['Informações Adicionais']?.toString() ?? '';
   String imageUrl = dataMap?['imageUrl']?.toString() ?? '';
   String local = dataMap?['local']?.toString() ?? '';
   int preco = int.tryParse(dataMap?['preco']?.toString() ?? '') ?? 0;
@@ -239,7 +239,7 @@ class _GerenciarEventosTabState extends State<GerenciarEventosTab> {
                         'status': status,
                         'data': data != null ? Timestamp.fromDate(data!) : null,
                         'imageUrl': url,
-                        'informacoesAdicionais': informacoesAdicionais,
+                        'Informações Adicionais': informacoesAdicionais,
                       };
                       if (doc == null) {
                         await FirebaseFirestore.instance.collection('events').add(eventoData);
@@ -256,29 +256,47 @@ class _GerenciarEventosTabState extends State<GerenciarEventosTab> {
   }
 
   Future<void> _removerEvento(DocumentSnapshot doc) async {
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Remover Evento'),
-        content: const Text('Tem certeza que deseja remover este evento?'),
-        actions: [
-          TextButton(
-            child: const Text('Cancelar'),
-            onPressed: () => Navigator.pop(context, false),
-          ),
-          ElevatedButton(
-            child: const Text('Remover'),
-            onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-          ),
-        ],
-      ),
-    );
-    if (confirm == true) {
-      await doc.reference.delete();
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Evento removido!')));
+  final confirm = await showDialog<bool>(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: const Text('Remover Evento'),
+      content: const Text('Tem certeza que deseja remover este evento? Todos os ingressos desse evento também serão apagados!'),
+      actions: [
+        TextButton(
+          child: const Text('Cancelar'),
+          onPressed: () => Navigator.pop(context, false),
+        ),
+        ElevatedButton(
+          child: const Text('Remover'),
+          onPressed: () => Navigator.pop(context, true),
+          style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+        ),
+      ],
+    ),
+  );
+  if (confirm == true) {
+    final batch = FirebaseFirestore.instance.batch();
+
+    // 1. Apaga todos os tickets com esse eventId
+    final ticketsQuery = await FirebaseFirestore.instance
+        .collection('tickets')
+        .where('eventId', isEqualTo: doc.id)
+        .get();
+
+    for (final ticketDoc in ticketsQuery.docs) {
+      batch.delete(ticketDoc.reference);
     }
+
+    // 2. Apaga o evento
+    batch.delete(doc.reference);
+
+    await batch.commit();
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Evento e todos os ingressos removidos!')),
+    );
   }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -322,7 +340,7 @@ class _GerenciarEventosTabState extends State<GerenciarEventosTab> {
               final nome = evento['nome'] ?? 'Sem nome';
               final descricao = evento['descrição'] ?? '';
               final imageUrl = evento['imageUrl'] ?? '';
-              final info = evento['informacoesAdicionais'] ?? '';
+              final info = evento['Informações Adicionais'] ?? '';
               String dataFormatada = '';
               if (evento['data'] != null && evento['data'] is Timestamp) {
                 final date = (evento['data'] as Timestamp).toDate();

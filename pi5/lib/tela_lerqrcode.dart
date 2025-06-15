@@ -13,7 +13,7 @@ class _TelaQRCodeState extends State<TelaQRCode> {
   String resultado = '';
   bool carregando = false;
   bool cameraAberta = false;
-  bool processando = false; // Adicionado
+  bool processando = false;
 
   void _abrirLeitorQRCode() {
     setState(() {
@@ -23,7 +23,6 @@ class _TelaQRCodeState extends State<TelaQRCode> {
   }
 
   Future<void> _processarQRCode(String code) async {
-    print('Lido QR: $code'); // Para debug
     setState(() {
       carregando = true;
       cameraAberta = false;
@@ -73,8 +72,23 @@ class _TelaQRCodeState extends State<TelaQRCode> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = Theme.of(context).textTheme.bodyLarge?.color;
+    final cardColor = Theme.of(context).cardColor;
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Validação de Ingressos')),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      appBar: AppBar(
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
+        iconTheme: Theme.of(context).appBarTheme.iconTheme,
+        title: Text(
+          'Validação de Ingressos',
+          style: TextStyle(
+            color: Theme.of(context).appBarTheme.titleTextStyle?.color ?? textColor,
+          ),
+        ),
+        elevation: 0,
+      ),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
@@ -82,9 +96,21 @@ class _TelaQRCodeState extends State<TelaQRCode> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: cardColor,
+                  foregroundColor: textColor,
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  side: BorderSide(
+                    color: isDark ? Colors.white12 : Colors.black12,
+                  ),
+                  textStyle: const TextStyle(fontWeight: FontWeight.bold),
+                ),
                 onPressed: carregando ? null : _abrirLeitorQRCode,
-                icon: const Icon(Icons.qr_code),
-                label: const Text('Validar Ingresso'),
+                icon: Icon(Icons.qr_code, color: textColor),
+                label: Text('Validar Ingresso', style: TextStyle(color: textColor)),
               ),
               const SizedBox(height: 32),
               if (carregando) const CircularProgressIndicator(),
@@ -110,10 +136,11 @@ class _TelaQRCodeState extends State<TelaQRCode> {
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(16),
                     child: MobileScanner(
+                      fit: BoxFit.contain,
                       onDetect: (capture) {
                         final barcode = capture.barcodes.first;
                         if (barcode.rawValue == null || processando) return;
-                        processando = true; // trava até terminar
+                        processando = true;
                         _processarQRCode(barcode.rawValue!).whenComplete(() {
                           processando = false;
                         });
@@ -126,7 +153,13 @@ class _TelaQRCodeState extends State<TelaQRCode> {
                   onPressed: () {
                     setState(() => cameraAberta = false);
                   },
-                  child: const Text('Cancelar'),
+                  child: Text(
+                    'Cancelar',
+                    style: TextStyle(
+                      color: isDark ? Colors.white70 : Colors.black87,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
               ],
             ],

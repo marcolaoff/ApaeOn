@@ -7,8 +7,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class LoginScreen extends StatefulWidget {
   final void Function(bool)? onToggleTheme;
-  final bool darkMode;
-  const LoginScreen({super.key, this.onToggleTheme, this.darkMode = false});
+  const LoginScreen({super.key, this.onToggleTheme});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -19,13 +18,16 @@ class _LoginScreenState extends State<LoginScreen> {
   final senhaController = TextEditingController();
   bool loading = false;
   String? errorMsg;
-
-  // Novo estado para controlar se o formulário de login deve ser exibido
   bool mostrarLogin = false;
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = Theme.of(context).textTheme.bodyLarge?.color;
+    final cardColor = Theme.of(context).cardColor;
+
     return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 32),
@@ -37,7 +39,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 width: 140,
                 height: 140,
                 decoration: BoxDecoration(
-                  color: Colors.grey[300],
+                  color: isDark ? Colors.grey[800] : Colors.grey[300],
                   shape: BoxShape.circle,
                 ),
                 child: ClipOval(
@@ -51,9 +53,13 @@ class _LoginScreenState extends State<LoginScreen> {
 
               // Pergunta inicial
               if (!mostrarLogin) ...[
-                const Text(
+                Text(
                   "O que deseja fazer?",
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: textColor,
+                  ),
                 ),
                 const SizedBox(height: 28),
                 SizedBox(
@@ -61,13 +67,15 @@ class _LoginScreenState extends State<LoginScreen> {
                   height: 42,
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: Colors.black,
+                      backgroundColor: cardColor,
+                      foregroundColor: textColor,
                       elevation: 1,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
                       ),
-                      side: const BorderSide(color: Colors.black12),
+                      side: BorderSide(
+                        color: isDark ? Colors.white12 : Colors.black12,
+                      ),
                     ),
                     onPressed: () {
                       setState(() {
@@ -86,19 +94,23 @@ class _LoginScreenState extends State<LoginScreen> {
                   height: 42,
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: Colors.black,
+                      backgroundColor: cardColor,
+                      foregroundColor: textColor,
                       elevation: 1,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
                       ),
-                      side: const BorderSide(color: Colors.black12),
+                      side: BorderSide(
+                        color: isDark ? Colors.white12 : Colors.black12,
+                      ),
                     ),
                     onPressed: () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const RegisterScreen(),
+                          builder: (context) => RegisterScreen(
+                            onToggleTheme: widget.onToggleTheme,
+                          ),
                         ),
                       );
                     },
@@ -117,12 +129,16 @@ class _LoginScreenState extends State<LoginScreen> {
                   controller: emailController,
                   decoration: InputDecoration(
                     labelText: 'Email',
+                    labelStyle: TextStyle(color: isDark ? Colors.white70 : Colors.black87),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
                     isDense: true,
+                    filled: true,
+                    fillColor: isDark ? Colors.grey[900] : Colors.white,
                   ),
                   keyboardType: TextInputType.emailAddress,
+                  style: TextStyle(color: textColor),
                 ),
                 const SizedBox(height: 20),
 
@@ -131,12 +147,16 @@ class _LoginScreenState extends State<LoginScreen> {
                   controller: senhaController,
                   decoration: InputDecoration(
                     labelText: 'Senha',
+                    labelStyle: TextStyle(color: isDark ? Colors.white70 : Colors.black87),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
                     isDense: true,
+                    filled: true,
+                    fillColor: isDark ? Colors.grey[900] : Colors.white,
                   ),
                   obscureText: true,
+                  style: TextStyle(color: textColor),
                 ),
                 const SizedBox(height: 18),
 
@@ -144,7 +164,10 @@ class _LoginScreenState extends State<LoginScreen> {
                 if (errorMsg != null)
                   Padding(
                     padding: const EdgeInsets.only(bottom: 12),
-                    child: Text(errorMsg!, style: const TextStyle(color: Colors.red)),
+                    child: Text(
+                      errorMsg!,
+                      style: const TextStyle(color: Colors.red),
+                    ),
                   ),
 
                 // Botão Login
@@ -153,13 +176,15 @@ class _LoginScreenState extends State<LoginScreen> {
                   height: 36,
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: Colors.black,
+                      backgroundColor: cardColor,
+                      foregroundColor: textColor,
                       elevation: 1,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
                       ),
-                      side: const BorderSide(color: Colors.black12),
+                      side: BorderSide(
+                        color: isDark ? Colors.white12 : Colors.black12,
+                      ),
                     ),
                     onPressed: loading ? null : login,
                     child: loading
@@ -176,19 +201,21 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 14),
 
-                // Botão Voltar formatado igual aos outros
+                // Botão Voltar
                 SizedBox(
                   width: 90,
                   height: 36,
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: Colors.black,
+                      backgroundColor: cardColor,
+                      foregroundColor: textColor,
                       elevation: 1,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
                       ),
-                      side: const BorderSide(color: Colors.black12),
+                      side: BorderSide(
+                        color: isDark ? Colors.white12 : Colors.black12,
+                      ),
                     ),
                     onPressed: () {
                       setState(() {
@@ -211,72 +238,70 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> login() async {
-  setState(() {
-    loading = true;
-    errorMsg = null;
-  });
+    setState(() {
+      loading = true;
+      errorMsg = null;
+    });
 
-  try {
-    UserCredential userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
-      email: emailController.text.trim(),
-      password: senhaController.text,
-    );
-    final user = userCredential.user;
-    if (user == null) {
-      setState(() {
-        errorMsg = "Erro inesperado. Tente novamente!";
-        loading = false;
-      });
-      return;
-    }
-
-    // Busca o documento do usuário na coleção "users"
-    final userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
-
-    if (!userDoc.exists) {
-      setState(() {
-        errorMsg = "Usuário não cadastrado na base de dados!";
-        loading = false;
-      });
-      return;
-    }
-
-    final data = userDoc.data()!;
-    final isAdmin = data['isAdmin'] ?? false;
-    final nome = data['nome'] ?? '';
-    final emailUser = data['email'] ?? '';
-
-    if (!mounted) return;
-
-    if (isAdmin == true) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => AdminScreen(nome: nome, email: emailUser),
-        ),
+    try {
+      UserCredential userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: emailController.text.trim(),
+        password: senhaController.text,
       );
-    } else {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => EventosScreen(
-            onToggleTheme: widget.onToggleTheme,
-            darkMode: widget.darkMode,
+      final user = userCredential.user;
+      if (user == null) {
+        setState(() {
+          errorMsg = "Erro inesperado. Tente novamente!";
+          loading = false;
+        });
+        return;
+      }
+
+      // Busca o documento do usuário na coleção "users"
+      final userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+
+      if (!userDoc.exists) {
+        setState(() {
+          errorMsg = "Usuário não cadastrado na base de dados!";
+          loading = false;
+        });
+        return;
+      }
+
+      final data = userDoc.data()!;
+      final isAdmin = data['isAdmin'] ?? false;
+      final nome = data['nome'] ?? '';
+      final emailUser = data['email'] ?? '';
+
+      if (!mounted) return;
+
+      if (isAdmin == true) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => AdminScreen(nome: nome, email: emailUser),
           ),
-        ),
-      );
+        );
+      } else {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => EventosScreen(
+              onToggleTheme: widget.onToggleTheme,
+            ),
+          ),
+        );
+      }
+    } on FirebaseAuthException catch (e) {
+      setState(() {
+        errorMsg = e.message;
+        loading = false;
+      });
+    } catch (e) {
+      setState(() {
+        errorMsg = "Erro ao fazer login. Tente novamente.";
+        loading = false;
+      });
     }
-  } on FirebaseAuthException catch (e) {
-    setState(() {
-      errorMsg = e.message;
-      loading = false;
-    });
-  } catch (e) {
-    setState(() {
-      errorMsg = "Erro ao fazer login. Tente novamente.";
-      loading = false;
-    });
   }
-}
-
 }

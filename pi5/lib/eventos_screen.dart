@@ -1,31 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:pi5/details_screen.dart';
-import 'perfil_screen.dart'; // Importe sua tela de perfil aqui
+import 'perfil_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'login_screen.dart'; // Garanta que está no seu projeto
+import 'login_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'ingressosqrcode_screen.dart'; // Troque pelo caminho correto do seu projeto
-
+import 'ingressosqrcode_screen.dart';
 
 class EventosScreen extends StatelessWidget {
   final void Function(bool)? onToggleTheme;
-  final bool darkMode;
-  const EventosScreen({super.key, this.onToggleTheme, this.darkMode = false});
+  const EventosScreen({super.key, this.onToggleTheme});
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return DefaultTabController(
       length: 3,
       child: Scaffold(
         appBar: AppBar(
-          backgroundColor: Theme.of(context).appBarTheme.backgroundColor ?? Colors.white,
+          backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
           elevation: 0,
           automaticallyImplyLeading: false,
-          bottom: const TabBar(
-            labelColor: Colors.black,
-            unselectedLabelColor: Colors.black54,
-            indicatorColor: Colors.black,
-            tabs: [
+          bottom: TabBar(
+            labelColor: Theme.of(context).tabBarTheme.labelColor ?? (isDark ? Colors.white : Colors.black),
+            unselectedLabelColor: Theme.of(context).tabBarTheme.unselectedLabelColor ?? (isDark ? Colors.white60 : Colors.black54),
+            indicatorColor: Theme.of(context).tabBarTheme.indicatorColor ?? (isDark ? Colors.white : Colors.black),
+            tabs: const [
               Tab(text: 'Eventos'),
               Tab(text: 'Meus Ingressos'),
               Tab(text: 'Configurações'),
@@ -34,12 +34,9 @@ class EventosScreen extends StatelessWidget {
         ),
         body: TabBarView(
           children: [
-            const EventosTab(),
-            const MeusIngressosTab(),
-            ConfiguracoesTab(
-              onToggleTheme: onToggleTheme,
-              darkMode: darkMode,
-            ),
+            EventosTab(onToggleTheme: onToggleTheme),
+            MeusIngressosTab(onToggleTheme: onToggleTheme),
+            ConfiguracoesTab(onToggleTheme: onToggleTheme),
           ],
         ),
       ),
@@ -48,10 +45,15 @@ class EventosScreen extends StatelessWidget {
 }
 
 class EventosTab extends StatelessWidget {
-  const EventosTab({super.key});
+  final void Function(bool)? onToggleTheme;
+  const EventosTab({super.key, this.onToggleTheme});
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = Theme.of(context).textTheme.bodyLarge?.color;
+    final cardColor = Theme.of(context).cardColor;
+
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance.collection('events').snapshots(),
       builder: (context, snapshot) {
@@ -59,10 +61,20 @@ class EventosTab extends StatelessWidget {
           return const Center(child: CircularProgressIndicator());
         }
         if (snapshot.hasError) {
-          return const Center(child: Text('Erro ao carregar eventos'));
+          return Center(
+            child: Text(
+              'Erro ao carregar eventos',
+              style: TextStyle(color: textColor),
+            ),
+          );
         }
         if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-          return const Center(child: Text('Nenhum evento encontrado.'));
+          return Center(
+            child: Text(
+              'Nenhum evento encontrado.',
+              style: TextStyle(color: textColor),
+            ),
+          );
         }
 
         final eventos = snapshot.data!.docs;
@@ -71,246 +83,21 @@ class EventosTab extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 20),
           itemCount: eventos.length,
           itemBuilder: (context, index) {
-  final evento = eventos[index].data() as Map<String, dynamic>;
-  final nome = evento['nome'] ?? 'Sem nome';
-  final descricao = evento['descrição'] ?? '';
-  final dataTimestamp = evento['data'];
-  String dataFormatada = '';
-  if (dataTimestamp != null && dataTimestamp is Timestamp) {
-    final date = dataTimestamp.toDate();
-    dataFormatada =
-        '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year} às ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
-  }
-
-  return Card(
-    margin: const EdgeInsets.only(bottom: 18),
-    elevation: 2,
-    color: Colors.white,
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(12),
-    ),
-    child: Padding(
-      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const CircleAvatar(
-                radius: 16,
-                backgroundColor: Colors.blueAccent,
-                child: Icon(Icons.event, color: Colors.white, size: 18),
-              ),
-              const SizedBox(width: 10),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    nome,
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    'Data: $dataFormatada',
-                    style: const TextStyle(fontSize: 13, color: Colors.black54),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          const SizedBox(height: 14),
-
-          // IMAGEM DO EVENTO (corrigida)
-          ClipRRect(
-  borderRadius: BorderRadius.circular(6),
-  child: Builder(
-    builder: (context) {
-      // Pega e mostra no console o valor do campo
-      String? imageUrl = evento['imageUrl']?.toString();
-      print('DEBUG - Campo imageUrl do evento: $imageUrl');
-      if (imageUrl == null) {
-        return Container(
-          height: 100,
-          width: double.infinity,
-          color: Colors.red[200],
-          child: const Center(
-            child: Text(
-              'URL NULA',
-              style: TextStyle(color: Colors.white),
-            ),
-          ),
-        );
-      }
-      imageUrl = imageUrl.replaceAll('"', '').trim();
-      if (imageUrl.isEmpty) {
-        return Container(
-          height: 100,
-          width: double.infinity,
-          color: Colors.orange[200],
-          child: const Center(
-            child: Text(
-              'URL VAZIA',
-              style: TextStyle(color: Colors.white),
-            ),
-          ),
-        );
-      }
-      if (!imageUrl.startsWith('http')) {
-        return Container(
-          height: 100,
-          width: double.infinity,
-          color: Colors.yellow[200],
-          child: Center(
-            child: Text(
-              'URL INVÁLIDA:\n$imageUrl',
-              style: const TextStyle(color: Colors.black, fontSize: 10),
-              textAlign: TextAlign.center,
-            ),
-          ),
-        );
-      }
-      return Image.network(
-        imageUrl,
-        height: 100,
-        width: double.infinity,
-        fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => Container(
-          height: 100,
-          width: double.infinity,
-          color: Colors.grey[300],
-          child: const Icon(Icons.broken_image, size: 48, color: Colors.grey),
-        ),
-      );
-    },
-  ),
-),
-
-
-          const SizedBox(height: 16),
-          Text(
-            descricao,
-            style: const TextStyle(fontSize: 13, color: Colors.black87),
-          ),
-          const SizedBox(height: 12),
-          SizedBox(
-            width: 150,
-            height: 34,
-            child: OutlinedButton(
-              style: OutlinedButton.styleFrom(
-                backgroundColor: Colors.white,
-                foregroundColor: Colors.black,
-                side: const BorderSide(color: Colors.black26),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                textStyle: const TextStyle(fontSize: 15),
-              ),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => DetailsScreen(eventId: eventos[index].id),
-                  ),
-                );
-              },
-              child: const Text('Detalhes'),
-            ),
-          ),
-        ],
-      ),
-    ),
-  );
-},
-
-        );
-      },
-    );
-  }
-}
-
-
-class MeusIngressosTab extends StatelessWidget {
-  const MeusIngressosTab({super.key});
-
-  // Stream de tickets do usuário agrupados por evento
-  Stream<Map<String, Map<String, dynamic>>> _streamUserTicketsGroupedByEvent() async* {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) {
-      yield {};
-      return;
-    }
-    // Escuta os tickets em tempo real
-    await for (final ticketsSnap in FirebaseFirestore.instance
-        .collection('tickets')
-        .where('userId', isEqualTo: user.uid)
-        .snapshots()) {
-      final Map<String, Map<String, dynamic>> grouped = {};
-
-      for (var doc in ticketsSnap.docs) {
-        final ticket = doc.data();
-        // Somente ingressos válidos!
-        if (ticket['status'] != 'ativo') continue;
-        final eventId = ticket['eventId'];
-        if (eventId == null || (eventId is String && eventId.trim().isEmpty)) continue;
-
-        if (!grouped.containsKey(eventId)) {
-          final eventSnap = await FirebaseFirestore.instance
-              .collection('events')
-              .doc(eventId)
-              .get();
-          if (!eventSnap.exists) continue;
-
-          grouped[eventId] = {
-            'evento': eventSnap.data()!..['id'] = eventSnap.id, // Adiciona o id do evento
-            'tickets': <Map<String, dynamic>>[],
-          };
-        }
-        final ticketMap = Map<String, dynamic>.from(ticket);
-        ticketMap['ticketId'] = doc.id;
-        (grouped[eventId]!['tickets'] as List).add(ticketMap);
-      }
-      // Remova eventos SEM ingressos válidos
-      grouped.removeWhere((_, v) => (v['tickets'] as List).isEmpty);
-      yield grouped;
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return StreamBuilder<Map<String, Map<String, dynamic>>>(
-      stream: _streamUserTicketsGroupedByEvent(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        if (snapshot.hasError) {
-          return const Center(child: Text('Erro ao carregar ingressos.'));
-        }
-        final data = snapshot.data ?? {};
-        if (data.isEmpty) {
-          return const Center(child: Text('Você ainda não possui ingressos.'));
-        }
-        final eventos = data.values.toList();
-        return ListView.builder(
-          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 20),
-          itemCount: eventos.length,
-          itemBuilder: (context, index) {
-            final evento = eventos[index]['evento'];
-            final tickets = eventos[index]['tickets'] as List;
-            final nome = evento?['nome'] ?? 'Evento sem nome';
-            final dataTimestamp = evento?['data'];
-            final descricao = evento?['descrição'] ?? '';
-            final eventId = evento?['id'] ?? ''; // Garante o ID
+            final evento = eventos[index].data() as Map<String, dynamic>;
+            final nome = evento['nome'] ?? 'Sem nome';
+            final descricao = evento['descrição'] ?? '';
+            final dataTimestamp = evento['data'];
             String dataFormatada = '';
             if (dataTimestamp != null && dataTimestamp is Timestamp) {
               final date = dataTimestamp.toDate();
               dataFormatada =
-              '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year} às ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
+                  '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year} às ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
             }
+
             return Card(
               margin: const EdgeInsets.only(bottom: 18),
               elevation: 2,
-              color: Colors.white,
+              color: cardColor,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
@@ -321,10 +108,10 @@ class MeusIngressosTab extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        const CircleAvatar(
+                        CircleAvatar(
                           radius: 16,
                           backgroundColor: Colors.blueAccent,
-                          child: Icon(Icons.event, color: Colors.white, size: 18),
+                          child: const Icon(Icons.event, color: Colors.white, size: 18),
                         ),
                         const SizedBox(width: 10),
                         Column(
@@ -332,39 +119,63 @@ class MeusIngressosTab extends StatelessWidget {
                           children: [
                             Text(
                               nome,
-                              style: const TextStyle(
-                                  fontWeight: FontWeight.bold, fontSize: 16),
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                                color: textColor,
+                              ),
                             ),
                             const SizedBox(height: 2),
                             Text(
                               'Data: $dataFormatada',
-                              style: const TextStyle(
-                                  fontSize: 13, color: Colors.black54),
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: isDark ? Colors.white60 : Colors.black54,
+                              ),
                             ),
                           ],
                         ),
                       ],
                     ),
                     const SizedBox(height: 14),
+                    // IMAGEM DO EVENTO
                     ClipRRect(
                       borderRadius: BorderRadius.circular(6),
                       child: Builder(
                         builder: (context) {
-                          String? imageUrl = evento?['imageUrl']?.toString();
-                          if (imageUrl == null || imageUrl.isEmpty) {
+                          String? imageUrl = evento['imageUrl']?.toString();
+                          if (imageUrl == null) {
                             return Container(
                               height: 100,
                               width: double.infinity,
-                              color: Colors.grey[300],
-                              child: const Icon(Icons.broken_image, size: 48, color: Colors.grey),
+                              color: isDark ? Colors.red[900] : Colors.red[200],
+                              child: Center(
+                                child: Text(
+                                  'URL NULA',
+                                  style: TextStyle(color: Colors.white),
+                                ),
+                              ),
                             );
                           }
                           imageUrl = imageUrl.replaceAll('"', '').trim();
+                          if (imageUrl.isEmpty) {
+                            return Container(
+                              height: 100,
+                              width: double.infinity,
+                              color: isDark ? Colors.orange[900] : Colors.orange[200],
+                              child: Center(
+                                child: Text(
+                                  'URL VAZIA',
+                                  style: TextStyle(color: Colors.white),
+                                ),
+                              ),
+                            );
+                          }
                           if (!imageUrl.startsWith('http')) {
                             return Container(
                               height: 100,
                               width: double.infinity,
-                              color: Colors.yellow[200],
+                              color: isDark ? Colors.yellow[800] : Colors.yellow[200],
                               child: Center(
                                 child: Text(
                                   'URL INVÁLIDA:\n$imageUrl',
@@ -382,23 +193,241 @@ class MeusIngressosTab extends StatelessWidget {
                             errorBuilder: (_, __, ___) => Container(
                               height: 100,
                               width: double.infinity,
-                              color: Colors.grey[300],
+                              color: isDark ? Colors.grey[700] : Colors.grey[300],
                               child: const Icon(Icons.broken_image, size: 48, color: Colors.grey),
                             ),
                           );
                         },
                       ),
                     ),
-
                     const SizedBox(height: 16),
                     Text(
                       descricao,
-                      style: const TextStyle(fontSize: 13, color: Colors.black87),
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: textColor,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      width: 150,
+                      height: 34,
+                      child: OutlinedButton(
+                        style: OutlinedButton.styleFrom(
+                          backgroundColor: isDark ? Colors.deepPurpleAccent : Colors.white,
+                          foregroundColor: isDark ? Colors.white : Colors.black,
+                          side: const BorderSide(color: Colors.black26),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          textStyle: const TextStyle(fontSize: 15),
+                        ),
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => DetailsScreen(
+                                eventId: eventos[index].id,
+                                onToggleTheme: onToggleTheme,
+                              ),
+                            ),
+                          );
+                        },
+                        child: const Text('Detalhes'),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+}
+
+class MeusIngressosTab extends StatelessWidget {
+  final void Function(bool)? onToggleTheme;
+  const MeusIngressosTab({super.key, this.onToggleTheme});
+
+  // Stream de tickets do usuário agrupados por evento
+  Stream<Map<String, Map<String, dynamic>>> _streamUserTicketsGroupedByEvent() async* {
+  final user = FirebaseAuth.instance.currentUser;
+  if (user == null) {
+    yield {};
+    return;
+  }
+  // Escuta os tickets em tempo real
+  await for (final ticketsSnap in FirebaseFirestore.instance
+      .collection('tickets')
+      .where('userId', isEqualTo: user.uid)
+      .snapshots()) {
+    final Map<String, Map<String, dynamic>> grouped = {};
+
+    for (var doc in ticketsSnap.docs) {
+      final ticket = doc.data();
+      final eventId = ticket['eventId'];
+      if (eventId == null || (eventId is String && eventId.trim().isEmpty)) continue;
+
+      if (!grouped.containsKey(eventId)) {
+        final eventSnap = await FirebaseFirestore.instance
+            .collection('events')
+            .doc(eventId)
+            .get();
+        if (!eventSnap.exists) continue;
+
+        grouped[eventId] = {
+          'evento': eventSnap.data()!..['id'] = eventSnap.id,
+          'tickets': <Map<String, dynamic>>[],
+        };
+      }
+      final ticketMap = Map<String, dynamic>.from(ticket);
+      ticketMap['ticketId'] = doc.id;
+      (grouped[eventId]!['tickets'] as List).add(ticketMap);
+    }
+    // NÃO remova eventos sem ingressos ativos!
+    yield grouped;
+  }
+}
+
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = Theme.of(context).textTheme.bodyLarge?.color;
+    final cardColor = Theme.of(context).cardColor;
+
+    return StreamBuilder<Map<String, Map<String, dynamic>>>(
+      stream: _streamUserTicketsGroupedByEvent(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (snapshot.hasError) {
+          return Center(
+            child: Text('Erro ao carregar ingressos.', style: TextStyle(color: textColor)),
+          );
+        }
+        final data = snapshot.data ?? {};
+        if (data.isEmpty) {
+          return Center(
+            child: Text('Você ainda não possui ingressos.', style: TextStyle(color: textColor)),
+          );
+        }
+        final eventos = data.values.toList();
+        return ListView.builder(
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 20),
+          itemCount: eventos.length,
+          itemBuilder: (context, index) {
+            final evento = eventos[index]['evento'];
+            final tickets = eventos[index]['tickets'] as List;
+            final nome = evento?['nome'] ?? 'Evento sem nome';
+            final dataTimestamp = evento?['data'];
+            final descricao = evento?['descrição'] ?? '';
+            final eventId = evento?['id'] ?? '';
+            String dataFormatada = '';
+            if (dataTimestamp != null && dataTimestamp is Timestamp) {
+              final date = dataTimestamp.toDate();
+              dataFormatada =
+                  '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year} às ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
+            }
+            return Card(
+              margin: const EdgeInsets.only(bottom: 18),
+              elevation: 2,
+              color: cardColor,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 16,
+                          backgroundColor: Colors.blueAccent,
+                          child: const Icon(Icons.event, color: Colors.white, size: 18),
+                        ),
+                        const SizedBox(width: 10),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              nome,
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                                color: textColor,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              'Data: $dataFormatada',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: isDark ? Colors.white60 : Colors.black54,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 14),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(6),
+                      child: Builder(
+                        builder: (context) {
+                          String? imageUrl = evento?['imageUrl']?.toString();
+                          if (imageUrl == null || imageUrl.isEmpty) {
+                            return Container(
+                              height: 100,
+                              width: double.infinity,
+                              color: isDark ? Colors.grey[700] : Colors.grey[300],
+                              child: const Icon(Icons.broken_image, size: 48, color: Colors.grey),
+                            );
+                          }
+                          imageUrl = imageUrl.replaceAll('"', '').trim();
+                          if (!imageUrl.startsWith('http')) {
+                            return Container(
+                              height: 100,
+                              width: double.infinity,
+                              color: isDark ? Colors.yellow[800] : Colors.yellow[200],
+                              child: Center(
+                                child: Text(
+                                  'URL INVÁLIDA:\n$imageUrl',
+                                  style: const TextStyle(color: Colors.black, fontSize: 10),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            );
+                          }
+                          return Image.network(
+                            imageUrl,
+                            height: 100,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => Container(
+                              height: 100,
+                              width: double.infinity,
+                              color: isDark ? Colors.grey[700] : Colors.grey[300],
+                              child: const Icon(Icons.broken_image, size: 48, color: Colors.grey),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      descricao,
+                      style: TextStyle(fontSize: 13, color: textColor),
                     ),
                     const SizedBox(height: 12),
                     Text(
                       'Quantidade de ingressos: ${tickets.length}',
-                      style: const TextStyle(
+                      style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.bold,
                           color: Colors.blueGrey),
@@ -409,8 +438,8 @@ class MeusIngressosTab extends StatelessWidget {
                       height: 34,
                       child: OutlinedButton(
                         style: OutlinedButton.styleFrom(
-                          backgroundColor: Colors.white,
-                          foregroundColor: Colors.black,
+                          backgroundColor: isDark ? Colors.deepPurpleAccent : Colors.white,
+                          foregroundColor: isDark ? Colors.white : Colors.black,
                           side: const BorderSide(color: Colors.black26),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
@@ -423,7 +452,8 @@ class MeusIngressosTab extends StatelessWidget {
                             MaterialPageRoute(
                               builder: (context) => IngressosQRCodesScreen(
                                 nomeEvento: nome,
-                                eventId: eventId, // Passe só o nomeEvento e o eventId
+                                eventId: eventId,
+                                onToggleTheme: onToggleTheme,
                               ),
                             ),
                           );
@@ -442,12 +472,9 @@ class MeusIngressosTab extends StatelessWidget {
   }
 }
 
-
-
 class ConfiguracoesTab extends StatelessWidget {
   final void Function(bool)? onToggleTheme;
-  final bool darkMode;
-  const ConfiguracoesTab({super.key, this.onToggleTheme, this.darkMode = false});
+  const ConfiguracoesTab({super.key, this.onToggleTheme});
 
   Future<void> _logout(BuildContext context) async {
     await FirebaseAuth.instance.signOut();
@@ -457,7 +484,6 @@ class ConfiguracoesTab extends StatelessWidget {
         MaterialPageRoute(
           builder: (context) => LoginScreen(
             onToggleTheme: onToggleTheme,
-            darkMode: darkMode,
           ),
         ),
         (route) => false,
@@ -467,6 +493,10 @@ class ConfiguracoesTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = Theme.of(context).textTheme.bodyLarge?.color;
+    final cardColor = Theme.of(context).cardColor;
+
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
@@ -481,12 +511,12 @@ class ConfiguracoesTab extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
+                      Text(
                         "MODO ESCURO",
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: textColor),
                       ),
                       Switch(
-                        value: darkMode,
+                        value: isDark,
                         activeColor: Colors.black,
                         onChanged: (val) {
                           if (onToggleTheme != null) {
@@ -503,12 +533,16 @@ class ConfiguracoesTab extends StatelessWidget {
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => const PerfilUsuarioScreen()),
+                        MaterialPageRoute(
+                          builder: (context) => PerfilUsuarioScreen(
+                            onToggleTheme: onToggleTheme,
+                          ),
+                        ),
                       );
                     },
-                    child: const Text(
+                    child: Text(
                       "PERFIL USUARIO",
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: textColor),
                     ),
                   ),
                   const SizedBox(height: 32),
@@ -526,13 +560,13 @@ class ConfiguracoesTab extends StatelessWidget {
                             backgroundColor: Colors.transparent,
                             child: Container(
                               decoration: BoxDecoration(
-                                color: Colors.white,
+                                color: cardColor,
                                 borderRadius: BorderRadius.circular(16),
                                 boxShadow: [
                                   BoxShadow(
                                     color: Colors.black12,
                                     blurRadius: 16,
-                                    offset: Offset(0, 8),
+                                    offset: const Offset(0, 8),
                                   ),
                                 ],
                               ),
@@ -540,11 +574,12 @@ class ConfiguracoesTab extends StatelessWidget {
                               child: Column(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  const Text(
+                                  Text(
                                     'Versão do app : Teste 1.0.3',
                                     style: TextStyle(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 16,
+                                      color: textColor,
                                     ),
                                   ),
                                   const SizedBox(height: 20),
@@ -553,8 +588,8 @@ class ConfiguracoesTab extends StatelessWidget {
                                     height: 36,
                                     child: ElevatedButton(
                                       style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.white,
-                                        foregroundColor: Colors.black,
+                                        backgroundColor: cardColor,
+                                        foregroundColor: textColor,
                                         elevation: 1,
                                         shape: RoundedRectangleBorder(
                                           borderRadius: BorderRadius.circular(12),
@@ -577,22 +612,20 @@ class ConfiguracoesTab extends StatelessWidget {
                         },
                       );
                     },
-                    child: const Text(
+                    child: Text(
                       "VERSÃO DO APLICATIVO",
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: textColor),
                     ),
                   ),
-
                   const SizedBox(height: 32),
 
-                  const Text(
+                  Text(
                     "LOCALIZAÇÃO",
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: textColor),
                   ),
                 ],
               ),
             ),
-
             // Botão Sair (agora faz logout real!)
             Align(
               alignment: Alignment.bottomCenter,
@@ -603,7 +636,7 @@ class ConfiguracoesTab extends StatelessWidget {
                   height: 36,
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
+                      backgroundColor: cardColor,
                       foregroundColor: Colors.red,
                       elevation: 2,
                       shape: RoundedRectangleBorder(
