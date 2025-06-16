@@ -5,6 +5,9 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'tela_lerqrcode.dart'; // Ajuste para seu caminho
+import 'dart:convert'; // para json.decode()
+import 'package:http/http.dart' as http; // para http.get()
+import 'package:url_launcher/url_launcher.dart'; // para launchUrl()
 
 class AdminScreen extends StatelessWidget {
   final String nome;
@@ -15,7 +18,7 @@ class AdminScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: 3,
+      length: 4,
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Painel do Administrador', style: TextStyle(color: Colors.black)),
@@ -29,6 +32,7 @@ class AdminScreen extends StatelessWidget {
             tabs: [
               Tab(text: 'Gerenciar Eventos'),
               Tab(text: 'Validar Ingressos'),
+              Tab(text: 'Relatório'),
               Tab(text: 'Configurações'),
             ],
           ),
@@ -37,6 +41,7 @@ class AdminScreen extends StatelessWidget {
           children: [
             GerenciarEventosTab(),
             ValidarIngressosTab(),
+            RelatorioTab(),
             AdminConfiguracoesTab(),
           ],
         ),
@@ -398,7 +403,119 @@ class _GerenciarEventosTabState extends State<GerenciarEventosTab> {
     );
   }
 }
+class RelatorioTab extends StatefulWidget {
+  const RelatorioTab({super.key});
+  @override
+  State<RelatorioTab> createState() => _RelatorioTabState();
+}
 
+class _RelatorioTabState extends State<RelatorioTab> {
+  Map<String, dynamic>? relatorio;
+  bool carregando = false;
+  String? erro;
+
+  Future<void> _buscarRelatorio() async {
+    setState(() {
+      carregando = true;
+      erro = null;
+    });
+    try {
+      // Use o IP público da VM ou seu domínio
+      const apiUrl = 'http://35.247.243.145:5000/relatorio/geral';
+      final response = await http.get(Uri.parse(apiUrl));
+      if (response.statusCode == 200) {
+        setState(() {
+          relatorio = json.decode(response.body);
+        });
+      } else {
+        setState(() {
+          erro = 'Erro ao obter relatório: ${response.body}';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        erro = 'Erro ao acessar API: $e';
+      });
+    } finally {
+      setState(() {
+        carregando = false;
+      });
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _buscarRelatorio();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: carregando
+          ? const Center(child: CircularProgressIndicator())
+          : erro != null
+          ? Center(child: Text(erro!, style: const TextStyle(color: Colors.red)))
+          : relatorio == null
+          ? const Center(child: Text('Nenhum relatório encontrado.'))
+          : Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              "Relatório Geral de Eventos",
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+            ),
+            const SizedBox(height: 20),
+            if (relatorio!['eventos'] != null)
+              Expanded(
+                child: ListView.builder(
+                  itemCount: relatorio!['eventos'].length,
+                  itemBuilder: (context, i) {
+                    final e = relatorio!['eventos'][i];
+                    return Card(
+                      margin: const EdgeInsets.only(bottom: 14),
+                      child: ListTile(
+                        title: Text(e['evento'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold)),
+                        subtitle: Text(
+                          "Vendidos: ${e['vendidos']}  |  Não vendidos: ${e['nao_vendidos']}\nArrecadado: R\$ ${e['arrecadado'].toStringAsFixed(2)}",
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            const SizedBox(height: 10),
+            Text(
+              "Total geral arrecadado: R\$ ${relatorio!['total_geral']?.toStringAsFixed(2) ?? '0.00'}",
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+            ),
+            const SizedBox(height: 16),
+            if (relatorio!['pdf_url'] != null)
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  icon: const Icon(Icons.picture_as_pdf),
+                  label: const Text("Abrir Relatório PDF"),
+                  onPressed: () => launchUrl(Uri.parse(relatorio!['pdf_url']!)),
+                ),
+              ),
+            const SizedBox(height: 6),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                icon: const Icon(Icons.refresh),
+                label: const Text("Atualizar Relatório"),
+                onPressed: _buscarRelatorio,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
 class ValidarIngressosTab extends StatelessWidget {
   const ValidarIngressosTab({super.key});
 

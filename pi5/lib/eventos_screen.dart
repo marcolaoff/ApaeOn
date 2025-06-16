@@ -5,26 +5,48 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'login_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'ingressosqrcode_screen.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class EventosScreen extends StatelessWidget {
   final void Function(bool)? onToggleTheme;
+
   const EventosScreen({super.key, this.onToggleTheme});
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isDark = Theme
+        .of(context)
+        .brightness == Brightness.dark;
 
     return DefaultTabController(
       length: 3,
       child: Scaffold(
         appBar: AppBar(
-          backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
+          backgroundColor: Theme
+              .of(context)
+              .appBarTheme
+              .backgroundColor,
           elevation: 0,
           automaticallyImplyLeading: false,
           bottom: TabBar(
-            labelColor: Theme.of(context).tabBarTheme.labelColor ?? (isDark ? Colors.white : Colors.black),
-            unselectedLabelColor: Theme.of(context).tabBarTheme.unselectedLabelColor ?? (isDark ? Colors.white60 : Colors.black54),
-            indicatorColor: Theme.of(context).tabBarTheme.indicatorColor ?? (isDark ? Colors.white : Colors.black),
+            labelColor:
+            Theme
+                .of(context)
+                .tabBarTheme
+                .labelColor ??
+                (isDark ? Colors.white : Colors.black),
+            unselectedLabelColor:
+            Theme
+                .of(context)
+                .tabBarTheme
+                .unselectedLabelColor ??
+                (isDark ? Colors.white60 : Colors.black54),
+            indicatorColor:
+            Theme
+                .of(context)
+                .tabBarTheme
+                .indicatorColor ??
+                (isDark ? Colors.white : Colors.black),
             tabs: const [
               Tab(text: 'Eventos'),
               Tab(text: 'Meus Ingressos'),
@@ -46,13 +68,22 @@ class EventosScreen extends StatelessWidget {
 
 class EventosTab extends StatelessWidget {
   final void Function(bool)? onToggleTheme;
+
   const EventosTab({super.key, this.onToggleTheme});
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final textColor = Theme.of(context).textTheme.bodyLarge?.color;
-    final cardColor = Theme.of(context).cardColor;
+    final isDark = Theme
+        .of(context)
+        .brightness == Brightness.dark;
+    final textColor = Theme
+        .of(context)
+        .textTheme
+        .bodyLarge
+        ?.color;
+    final cardColor = Theme
+        .of(context)
+        .cardColor;
 
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance.collection('events').snapshots(),
@@ -91,7 +122,11 @@ class EventosTab extends StatelessWidget {
             if (dataTimestamp != null && dataTimestamp is Timestamp) {
               final date = dataTimestamp.toDate();
               dataFormatada =
-                  '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year} às ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
+              '${date.day.toString().padLeft(2, '0')}/${date.month
+                  .toString()
+                  .padLeft(2, '0')}/${date.year} às ${date.hour
+                  .toString()
+                  .padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
             }
 
             return Card(
@@ -102,7 +137,10 @@ class EventosTab extends StatelessWidget {
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+                padding: const EdgeInsets.symmetric(
+                  vertical: 16,
+                  horizontal: 16,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -111,7 +149,11 @@ class EventosTab extends StatelessWidget {
                         CircleAvatar(
                           radius: 16,
                           backgroundColor: Colors.blueAccent,
-                          child: const Icon(Icons.event, color: Colors.white, size: 18),
+                          child: const Icon(
+                            Icons.event,
+                            color: Colors.white,
+                            size: 18,
+                          ),
                         ),
                         const SizedBox(width: 10),
                         Column(
@@ -162,7 +204,10 @@ class EventosTab extends StatelessWidget {
                             return Container(
                               height: 100,
                               width: double.infinity,
-                              color: isDark ? Colors.orange[900] : Colors.orange[200],
+                              color:
+                              isDark
+                                  ? Colors.orange[900]
+                                  : Colors.orange[200],
                               child: Center(
                                 child: Text(
                                   'URL VAZIA',
@@ -175,11 +220,17 @@ class EventosTab extends StatelessWidget {
                             return Container(
                               height: 100,
                               width: double.infinity,
-                              color: isDark ? Colors.yellow[800] : Colors.yellow[200],
+                              color:
+                              isDark
+                                  ? Colors.yellow[800]
+                                  : Colors.yellow[200],
                               child: Center(
                                 child: Text(
                                   'URL INVÁLIDA:\n$imageUrl',
-                                  style: const TextStyle(color: Colors.black, fontSize: 10),
+                                  style: const TextStyle(
+                                    color: Colors.black,
+                                    fontSize: 10,
+                                  ),
                                   textAlign: TextAlign.center,
                                 ),
                               ),
@@ -190,12 +241,21 @@ class EventosTab extends StatelessWidget {
                             height: 100,
                             width: double.infinity,
                             fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => Container(
-                              height: 100,
-                              width: double.infinity,
-                              color: isDark ? Colors.grey[700] : Colors.grey[300],
-                              child: const Icon(Icons.broken_image, size: 48, color: Colors.grey),
-                            ),
+                            errorBuilder:
+                                (_, __, ___) =>
+                                Container(
+                                  height: 100,
+                                  width: double.infinity,
+                                  color:
+                                  isDark
+                                      ? Colors.grey[700]
+                                      : Colors.grey[300],
+                                  child: const Icon(
+                                    Icons.broken_image,
+                                    size: 48,
+                                    color: Colors.grey,
+                                  ),
+                                ),
                           );
                         },
                       ),
@@ -203,10 +263,7 @@ class EventosTab extends StatelessWidget {
                     const SizedBox(height: 16),
                     Text(
                       descricao,
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: textColor,
-                      ),
+                      style: TextStyle(fontSize: 13, color: textColor),
                     ),
                     const SizedBox(height: 12),
                     SizedBox(
@@ -214,7 +271,8 @@ class EventosTab extends StatelessWidget {
                       height: 34,
                       child: OutlinedButton(
                         style: OutlinedButton.styleFrom(
-                          backgroundColor: isDark ? Colors.deepPurpleAccent : Colors.white,
+                          backgroundColor:
+                          isDark ? Colors.deepPurpleAccent : Colors.white,
                           foregroundColor: isDark ? Colors.white : Colors.black,
                           side: const BorderSide(color: Colors.black26),
                           shape: RoundedRectangleBorder(
@@ -226,10 +284,12 @@ class EventosTab extends StatelessWidget {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => DetailsScreen(
-                                eventId: eventos[index].id,
-                                onToggleTheme: onToggleTheme,
-                              ),
+                              builder:
+                                  (context) =>
+                                  DetailsScreen(
+                                    eventId: eventos[index].id,
+                                    onToggleTheme: onToggleTheme,
+                                  ),
                             ),
                           );
                         },
@@ -249,54 +309,69 @@ class EventosTab extends StatelessWidget {
 
 class MeusIngressosTab extends StatelessWidget {
   final void Function(bool)? onToggleTheme;
+
   const MeusIngressosTab({super.key, this.onToggleTheme});
 
   // Stream de tickets do usuário agrupados por evento
-  Stream<Map<String, Map<String, dynamic>>> _streamUserTicketsGroupedByEvent() async* {
-  final user = FirebaseAuth.instance.currentUser;
-  if (user == null) {
-    yield {};
-    return;
-  }
-  // Escuta os tickets em tempo real
-  await for (final ticketsSnap in FirebaseFirestore.instance
-      .collection('tickets')
-      .where('userId', isEqualTo: user.uid)
-      .snapshots()) {
-    final Map<String, Map<String, dynamic>> grouped = {};
-
-    for (var doc in ticketsSnap.docs) {
-      final ticket = doc.data();
-      final eventId = ticket['eventId'];
-      if (eventId == null || (eventId is String && eventId.trim().isEmpty)) continue;
-
-      if (!grouped.containsKey(eventId)) {
-        final eventSnap = await FirebaseFirestore.instance
-            .collection('events')
-            .doc(eventId)
-            .get();
-        if (!eventSnap.exists) continue;
-
-        grouped[eventId] = {
-          'evento': eventSnap.data()!..['id'] = eventSnap.id,
-          'tickets': <Map<String, dynamic>>[],
-        };
-      }
-      final ticketMap = Map<String, dynamic>.from(ticket);
-      ticketMap['ticketId'] = doc.id;
-      (grouped[eventId]!['tickets'] as List).add(ticketMap);
+  Stream<Map<String, Map<String, dynamic>>>
+  _streamUserTicketsGroupedByEvent() async* {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      yield {};
+      return;
     }
-    // NÃO remova eventos sem ingressos ativos!
-    yield grouped;
-  }
-}
+    // Escuta os tickets em tempo real
+    await for (final ticketsSnap
+    in FirebaseFirestore.instance
+        .collection('tickets')
+        .where('userId', isEqualTo: user.uid)
+        .snapshots()) {
+      final Map<String, Map<String, dynamic>> grouped = {};
 
+      for (var doc in ticketsSnap.docs) {
+        final ticket = doc.data();
+        final eventId = ticket['eventId'];
+        if (eventId == null || (eventId is String && eventId
+            .trim()
+            .isEmpty))
+          continue;
+
+        if (!grouped.containsKey(eventId)) {
+          final eventSnap =
+          await FirebaseFirestore.instance
+              .collection('events')
+              .doc(eventId)
+              .get();
+          if (!eventSnap.exists) continue;
+
+          grouped[eventId] = {
+            'evento': eventSnap.data()!
+              ..['id'] = eventSnap.id,
+            'tickets': <Map<String, dynamic>>[],
+          };
+        }
+        final ticketMap = Map<String, dynamic>.from(ticket);
+        ticketMap['ticketId'] = doc.id;
+        (grouped[eventId]!['tickets'] as List).add(ticketMap);
+      }
+      // NÃO remova eventos sem ingressos ativos!
+      yield grouped;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final textColor = Theme.of(context).textTheme.bodyLarge?.color;
-    final cardColor = Theme.of(context).cardColor;
+    final isDark = Theme
+        .of(context)
+        .brightness == Brightness.dark;
+    final textColor = Theme
+        .of(context)
+        .textTheme
+        .bodyLarge
+        ?.color;
+    final cardColor = Theme
+        .of(context)
+        .cardColor;
 
     return StreamBuilder<Map<String, Map<String, dynamic>>>(
       stream: _streamUserTicketsGroupedByEvent(),
@@ -306,13 +381,19 @@ class MeusIngressosTab extends StatelessWidget {
         }
         if (snapshot.hasError) {
           return Center(
-            child: Text('Erro ao carregar ingressos.', style: TextStyle(color: textColor)),
+            child: Text(
+              'Erro ao carregar ingressos.',
+              style: TextStyle(color: textColor),
+            ),
           );
         }
         final data = snapshot.data ?? {};
         if (data.isEmpty) {
           return Center(
-            child: Text('Você ainda não possui ingressos.', style: TextStyle(color: textColor)),
+            child: Text(
+              'Você ainda não possui ingressos.',
+              style: TextStyle(color: textColor),
+            ),
           );
         }
         final eventos = data.values.toList();
@@ -330,7 +411,11 @@ class MeusIngressosTab extends StatelessWidget {
             if (dataTimestamp != null && dataTimestamp is Timestamp) {
               final date = dataTimestamp.toDate();
               dataFormatada =
-                  '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year} às ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
+              '${date.day.toString().padLeft(2, '0')}/${date.month
+                  .toString()
+                  .padLeft(2, '0')}/${date.year} às ${date.hour
+                  .toString()
+                  .padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
             }
             return Card(
               margin: const EdgeInsets.only(bottom: 18),
@@ -340,7 +425,10 @@ class MeusIngressosTab extends StatelessWidget {
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+                padding: const EdgeInsets.symmetric(
+                  vertical: 16,
+                  horizontal: 16,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -349,7 +437,11 @@ class MeusIngressosTab extends StatelessWidget {
                         CircleAvatar(
                           radius: 16,
                           backgroundColor: Colors.blueAccent,
-                          child: const Icon(Icons.event, color: Colors.white, size: 18),
+                          child: const Icon(
+                            Icons.event,
+                            color: Colors.white,
+                            size: 18,
+                          ),
                         ),
                         const SizedBox(width: 10),
                         Column(
@@ -385,8 +477,13 @@ class MeusIngressosTab extends StatelessWidget {
                             return Container(
                               height: 100,
                               width: double.infinity,
-                              color: isDark ? Colors.grey[700] : Colors.grey[300],
-                              child: const Icon(Icons.broken_image, size: 48, color: Colors.grey),
+                              color:
+                              isDark ? Colors.grey[700] : Colors.grey[300],
+                              child: const Icon(
+                                Icons.broken_image,
+                                size: 48,
+                                color: Colors.grey,
+                              ),
                             );
                           }
                           imageUrl = imageUrl.replaceAll('"', '').trim();
@@ -394,11 +491,17 @@ class MeusIngressosTab extends StatelessWidget {
                             return Container(
                               height: 100,
                               width: double.infinity,
-                              color: isDark ? Colors.yellow[800] : Colors.yellow[200],
+                              color:
+                              isDark
+                                  ? Colors.yellow[800]
+                                  : Colors.yellow[200],
                               child: Center(
                                 child: Text(
                                   'URL INVÁLIDA:\n$imageUrl',
-                                  style: const TextStyle(color: Colors.black, fontSize: 10),
+                                  style: const TextStyle(
+                                    color: Colors.black,
+                                    fontSize: 10,
+                                  ),
                                   textAlign: TextAlign.center,
                                 ),
                               ),
@@ -409,12 +512,21 @@ class MeusIngressosTab extends StatelessWidget {
                             height: 100,
                             width: double.infinity,
                             fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => Container(
-                              height: 100,
-                              width: double.infinity,
-                              color: isDark ? Colors.grey[700] : Colors.grey[300],
-                              child: const Icon(Icons.broken_image, size: 48, color: Colors.grey),
-                            ),
+                            errorBuilder:
+                                (_, __, ___) =>
+                                Container(
+                                  height: 100,
+                                  width: double.infinity,
+                                  color:
+                                  isDark
+                                      ? Colors.grey[700]
+                                      : Colors.grey[300],
+                                  child: const Icon(
+                                    Icons.broken_image,
+                                    size: 48,
+                                    color: Colors.grey,
+                                  ),
+                                ),
                           );
                         },
                       ),
@@ -428,9 +540,10 @@ class MeusIngressosTab extends StatelessWidget {
                     Text(
                       'Quantidade de ingressos: ${tickets.length}',
                       style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.blueGrey),
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blueGrey,
+                      ),
                     ),
                     const SizedBox(height: 8),
                     SizedBox(
@@ -438,7 +551,8 @@ class MeusIngressosTab extends StatelessWidget {
                       height: 34,
                       child: OutlinedButton(
                         style: OutlinedButton.styleFrom(
-                          backgroundColor: isDark ? Colors.deepPurpleAccent : Colors.white,
+                          backgroundColor:
+                          isDark ? Colors.deepPurpleAccent : Colors.white,
                           foregroundColor: isDark ? Colors.white : Colors.black,
                           side: const BorderSide(color: Colors.black26),
                           shape: RoundedRectangleBorder(
@@ -450,11 +564,13 @@ class MeusIngressosTab extends StatelessWidget {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => IngressosQRCodesScreen(
-                                nomeEvento: nome,
-                                eventId: eventId,
-                                onToggleTheme: onToggleTheme,
-                              ),
+                              builder:
+                                  (context) =>
+                                  IngressosQRCodesScreen(
+                                    nomeEvento: nome,
+                                    eventId: eventId,
+                                    onToggleTheme: onToggleTheme,
+                                  ),
                             ),
                           );
                         },
@@ -474,6 +590,7 @@ class MeusIngressosTab extends StatelessWidget {
 
 class ConfiguracoesTab extends StatelessWidget {
   final void Function(bool)? onToggleTheme;
+
   const ConfiguracoesTab({super.key, this.onToggleTheme});
 
   Future<void> _logout(BuildContext context) async {
@@ -482,11 +599,9 @@ class ConfiguracoesTab extends StatelessWidget {
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(
-          builder: (context) => LoginScreen(
-            onToggleTheme: onToggleTheme,
-          ),
+          builder: (context) => LoginScreen(onToggleTheme: onToggleTheme),
         ),
-        (route) => false,
+            (route) => false,
       );
     }
   }
@@ -513,7 +628,11 @@ class ConfiguracoesTab extends StatelessWidget {
                     children: [
                       Text(
                         "MODO ESCURO",
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: textColor),
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
+                          color: textColor,
+                        ),
                       ),
                       Switch(
                         value: isDark,
@@ -542,7 +661,11 @@ class ConfiguracoesTab extends StatelessWidget {
                     },
                     child: Text(
                       "PERFIL USUARIO",
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: textColor),
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                        color: textColor,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 32),
@@ -614,15 +737,37 @@ class ConfiguracoesTab extends StatelessWidget {
                     },
                     child: Text(
                       "VERSÃO DO APLICATIVO",
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: textColor),
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                        color: textColor,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 32),
 
-                  Text(
-                    "LOCALIZAÇÃO",
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: textColor),
+                  GestureDetector(
+                    onTap: () async {
+                      const url = 'https://www.google.com/maps/search/?api=1&query=-22.424345194559244,-46.81835773070385';
+                      if (await canLaunchUrl(Uri.parse(url))) {
+                        await launchUrl(Uri.parse(url));
+                      }
+                    },
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "LOCALIZAÇÃO",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 15,
+                            color: textColor,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
+                  const SizedBox(height: 32),
                 ],
               ),
             ),
@@ -655,7 +800,7 @@ class ConfiguracoesTab extends StatelessWidget {
                   ),
                 ),
               ),
-            )
+            ),
           ],
         ),
       ),

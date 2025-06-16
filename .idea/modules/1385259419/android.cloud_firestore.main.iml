@@ -24,8 +24,8 @@
       <sourceFolder url="file://$MODULE_DIR$/../../../pi5/build/cloud_firestore/generated/ap_generated_sources/debug/out" isTestSource="false" generated="true" />
     </content>
     <content url="file://$MODULE_DIR$/../../../pi5/build/cloud_firestore/generated/res/resValues/debug">
-      <sourceFolder url="file://$MODULE_DIR$/../../../pi5/build/cloud_firestore/generated/res/resValues/debug" type="java-resource" />
-      <sourceFolder url="file://$MODULE_DIR$/../../../pi5/build/cloud_firestore/generated/res/resValues/debug" type="java-resource" />
+      <sourceFolder url="file://$MODULE_DIR$/../../../pi5/build/cloud_firestore/generated/res/resValues/debug" type="java-resource" generated="true" />
+      <sourceFolder url="file://$MODULE_DIR$/../../../pi5/build/cloud_firestore/generated/res/resValues/debug" type="java-resource" generated="true" />
     </content>
     <content url="file://$MODULE_DIR$/../../../pi5/build/cloud_firestore/generated/source/buildConfig/debug">
       <sourceFolder url="file://$MODULE_DIR$/../../../pi5/build/cloud_firestore/generated/source/buildConfig/debug" isTestSource="false" generated="true" />
@@ -69,7 +69,7 @@
     <orderEntry type="library" name="Gradle: com.google.firebase:firebase-common:20.4.3@aar" level="project" />
     <orderEntry type="library" name="Gradle: com.google.firebase:firebase-components:17.1.5@aar" level="project" />
     <orderEntry type="library" name="Gradle: com.google.firebase:firebase-common-ktx:20.4.3@aar" level="project" />
-    <orderEntry type="library" name="Gradle: io.flutter:flutter_embedding_debug:1.0.0-109150893958777c8f2215f6cfd3e89e984e8dea" level="project" />
+    <orderEntry type="library" name="Gradle: io.flutter:flutter_embedding_debug:1.0.0-8cd19e509d6bece8ccd74aef027c4ca947363095" level="project" />
     <orderEntry type="library" name="Gradle: androidx.lifecycle:lifecycle-common:2.7.0" level="project" />
     <orderEntry type="library" name="Gradle: androidx.annotation:annotation-jvm:1.8.0" level="project" />
     <orderEntry type="library" name="Gradle: org.jetbrains.kotlin:kotlin-stdlib:1.8.22" level="project" />
