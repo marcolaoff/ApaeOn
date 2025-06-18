@@ -361,26 +361,20 @@ class _GerenciarEventosTabState extends State<GerenciarEventosTab> {
                   contentPadding: const EdgeInsets.all(16),
                   leading: imageUrl != null && imageUrl.toString().isNotEmpty
                       ? ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
-                          child: Image.network(imageUrl, width: 60, height: 60, fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => const Icon(Icons.event, size: 32, color: Colors.grey),
-                          ),
-                        )
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.network(imageUrl, width: 60, height: 60, fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => const Icon(Icons.event, size: 32, color: Colors.grey),
+                    ),
+                  )
                       : Container(
-                          width: 60, height: 60, decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(8)),
-                          child: const Icon(Icons.event, size: 32, color: Colors.grey)),
-                  title: Text(nome, style: const TextStyle(fontWeight: FontWeight.bold)),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (dataFormatada.isNotEmpty)
-                        Text(dataFormatada, style: const TextStyle(fontSize: 13)),
-                      if (descricao.isNotEmpty)
-                        Text(descricao, style: const TextStyle(fontSize: 13, color: Colors.black87)),
-                      if (info.isNotEmpty)
-                        Text(info, style: const TextStyle(fontSize: 13, color: Colors.black54)),
-                    ],
+                      width: 60, height: 60, decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(8)),
+                      child: const Icon(Icons.event, size: 32, color: Colors.grey)),
+                  title: Text(
+                    nome,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
+                  // Remova o subtitle, ou deixe vazio:
+                  // subtitle: null,
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
