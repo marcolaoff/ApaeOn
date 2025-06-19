@@ -23,7 +23,6 @@ class _IngressoScreenState extends State<IngressoScreen> {
   int quantidadeNormal = 0;
   int quantidadeMeia = 0;
 
-  // Salva e retorna a lista de IDs dos ingressos criados
   Future<List<String>> salvarIngressosNoFirestore({
     required int quantidadeNormal,
     required int quantidadeMeia,
@@ -109,7 +108,6 @@ class _IngressoScreenState extends State<IngressoScreen> {
                 ),
                 const SizedBox(height: 20),
 
-                // Ingresso Normal
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -153,7 +151,6 @@ class _IngressoScreenState extends State<IngressoScreen> {
                   ),
                 ),
 
-                // Ingresso Meia
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -199,7 +196,6 @@ class _IngressoScreenState extends State<IngressoScreen> {
 
                 const Spacer(),
 
-                // Resumo Total
                 Container(
                   padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
                   decoration: BoxDecoration(
@@ -223,7 +219,6 @@ class _IngressoScreenState extends State<IngressoScreen> {
                 ),
                 const SizedBox(height: 14),
 
-                // Botão Confirmar Compra
                 SizedBox(
                   width: double.infinity,
                   height: 48,
@@ -275,9 +270,8 @@ class QRCodesGeradosScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Remove o botão de voltar do AppBar (não usa automaticamente)
       appBar: AppBar(
-        automaticallyImplyLeading: false, // Remove o botão de voltar
+        automaticallyImplyLeading: false,
         title: const Text('Seus QR Codes'),
       ),
       body: Column(

@@ -55,7 +55,6 @@ class _TelaQRCodeState extends State<TelaQRCode> {
         return;
       }
 
-      // Atualiza o status para "inativo"
       await doc.reference.update({'status': 'inativo'});
 
       setState(() {

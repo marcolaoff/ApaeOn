@@ -4,7 +4,18 @@ Aplicativo mobile para compra, gestão e validação de ingressos para eventos d
 
 ## 📱 Visão Geral
 
-O **ApaeOn** simplifica a organização de eventos e o processo de venda de ingressos da APAE. Usuários podem comprar ingressos, acessar QR Codes para entrada e consultar eventos. O app permite à administração criar, editar, excluir eventos, validar ingressos e gerar relatórios de vendas.
+O **ApaeOn** foi desenvolvido para simplificar a gestão de eventos da APAE Itapira, trazendo praticidade tanto para usuários quanto para administradores.
+
+- **Usuário:**  
+  - Cadastro/login via e-mail ou Google
+  - Compra de ingressos
+  - Carteira digital de ingressos com QR Code
+  - Visualização de eventos disponíveis
+
+- **Administrador:**  
+  - CRUD completo de eventos
+  - Validação de ingressos por QR Code na entrada
+  - Relatórios de vendas/exportação de lista em PDF
 
 ## 🚀 Funcionalidades
 
@@ -37,3 +48,25 @@ O **ApaeOn** simplifica a organização de eventos e o processo de venda de ingr
 ```bash
 git clone https://github.com/seuusuario/apaeon.git
 cd apaeon
+
+### 2. Instale as Dependências
+
+```bash
+flutter pub get
+
+
+### 3. Execute o app
+
+flutter run
+
+
+**Equipe**
+Professor Orientador: Lúcio Pelizzer Paris
+
+Líder do Projeto: Luis Gustavo Lima Junior
+
+Desenvolvedores: 
+- Matheus Ferreira Machado
+- Marco Antonio Lourenci 
+- Luis Henrique Topan de Lima 
+- Adriano Ferreira Junior

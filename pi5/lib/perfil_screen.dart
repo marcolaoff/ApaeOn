@@ -51,7 +51,6 @@ class _PerfilUsuarioScreenState extends State<PerfilUsuarioScreen> {
     setState(() => loading = false);
   }
 
-  /// MODAL PARA EDITAR NOME/EMAIL
   Future<void> _editarCampo(String campo, String valorAtual) async {
     final controller = TextEditingController(text: valorAtual);
 
@@ -89,7 +88,6 @@ class _PerfilUsuarioScreenState extends State<PerfilUsuarioScreen> {
     }
   }
 
-  // Atualiza NOME no banco e na tela
   Future<void> _salvarNomeModal(String nomeNovo) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
@@ -102,7 +100,6 @@ class _PerfilUsuarioScreenState extends State<PerfilUsuarioScreen> {
     );
   }
 
-  // Atualiza EMAIL no banco e na tela
   Future<void> _salvarEmailModal(String emailNovo) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
@@ -217,7 +214,6 @@ class _PerfilUsuarioScreenState extends State<PerfilUsuarioScreen> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   const SizedBox(height: 16),
-                  // Avatar
                   Stack(
                     alignment: Alignment.center,
                     children: [
@@ -250,7 +246,6 @@ class _PerfilUsuarioScreenState extends State<PerfilUsuarioScreen> {
                   ),
                   const SizedBox(height: 24),
 
-                  // Nome (somente leitura, abre modal ao clicar no lápis)
                   TextField(
                     controller: _nomeController,
                     readOnly: true,
@@ -280,7 +275,6 @@ class _PerfilUsuarioScreenState extends State<PerfilUsuarioScreen> {
                   ),
                   const SizedBox(height: 22),
 
-                  // Email (somente leitura, abre modal ao clicar no lápis)
                   TextField(
                     controller: _emailController,
                     readOnly: true,
@@ -311,7 +305,6 @@ class _PerfilUsuarioScreenState extends State<PerfilUsuarioScreen> {
 
                   const SizedBox(height: 40),
 
-                  // Botão Apagar Conta
                   SizedBox(
                     width: 160,
                     height: 36,

@@ -4,10 +4,10 @@ import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'tela_lerqrcode.dart'; // Ajuste para seu caminho
-import 'dart:convert'; // para json.decode()
-import 'package:http/http.dart' as http; // para http.get()
-import 'package:url_launcher/url_launcher.dart'; // para launchUrl()
+import 'tela_lerqrcode.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:url_launcher/url_launcher.dart';
 
 class AdminScreen extends StatelessWidget {
   final String nome;
@@ -282,7 +282,6 @@ class _GerenciarEventosTabState extends State<GerenciarEventosTab> {
   if (confirm == true) {
     final batch = FirebaseFirestore.instance.batch();
 
-    // 1. Apaga todos os tickets com esse eventId
     final ticketsQuery = await FirebaseFirestore.instance
         .collection('tickets')
         .where('eventId', isEqualTo: doc.id)
@@ -292,7 +291,6 @@ class _GerenciarEventosTabState extends State<GerenciarEventosTab> {
       batch.delete(ticketDoc.reference);
     }
 
-    // 2. Apaga o evento
     batch.delete(doc.reference);
 
     await batch.commit();
@@ -373,8 +371,6 @@ class _GerenciarEventosTabState extends State<GerenciarEventosTab> {
                     nome,
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
-                  // Remova o subtitle, ou deixe vazio:
-                  // subtitle: null,
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -414,7 +410,6 @@ class _RelatorioTabState extends State<RelatorioTab> {
       erro = null;
     });
     try {
-      // Use o IP público da VM ou seu domínio
       const apiUrl = 'http://35.247.243.145:5000/relatorio/geral';
       final response = await http.get(Uri.parse(apiUrl));
       if (response.statusCode == 200) {

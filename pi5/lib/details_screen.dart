@@ -133,7 +133,6 @@ class DetailsScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 22),
 
-                      // Imagem do evento
                       Container(
                         height: 150,
                         width: double.infinity,
@@ -167,7 +166,6 @@ class DetailsScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 22),
 
-                      // Descrição
                       Text(
                         'Descrição',
                         style: TextStyle(
@@ -186,7 +184,6 @@ class DetailsScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 18),
 
-                      // Informações adicionais
                       Text(
                         'Informações adicionais',
                         style: TextStyle(
@@ -205,7 +202,6 @@ class DetailsScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 28),
 
-                      // Botão comprar ingressos
                       SizedBox(
                         width: double.infinity,
                         height: 44,

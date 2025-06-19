@@ -180,7 +180,6 @@ class EventosTab extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 14),
-                    // IMAGEM DO EVENTO
                     ClipRRect(
                       borderRadius: BorderRadius.circular(6),
                       child: Builder(
@@ -312,7 +311,6 @@ class MeusIngressosTab extends StatelessWidget {
 
   const MeusIngressosTab({super.key, this.onToggleTheme});
 
-  // Stream de tickets do usuário agrupados por evento
   Stream<Map<String, Map<String, dynamic>>>
   _streamUserTicketsGroupedByEvent() async* {
     final user = FirebaseAuth.instance.currentUser;
@@ -320,7 +318,6 @@ class MeusIngressosTab extends StatelessWidget {
       yield {};
       return;
     }
-    // Escuta os tickets em tempo real
     await for (final ticketsSnap
     in FirebaseFirestore.instance
         .collection('tickets')
@@ -354,7 +351,6 @@ class MeusIngressosTab extends StatelessWidget {
         ticketMap['ticketId'] = doc.id;
         (grouped[eventId]!['tickets'] as List).add(ticketMap);
       }
-      // NÃO remova eventos sem ingressos ativos!
       yield grouped;
     }
   }
@@ -622,7 +618,6 @@ class ConfiguracoesTab extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Modo escuro
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -646,8 +641,6 @@ class ConfiguracoesTab extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 32),
-
-                  // Perfil Usuário
                   GestureDetector(
                     onTap: () {
                       Navigator.push(
@@ -771,7 +764,6 @@ class ConfiguracoesTab extends StatelessWidget {
                 ],
               ),
             ),
-            // Botão Sair (agora faz logout real!)
             Align(
               alignment: Alignment.bottomCenter,
               child: Padding(

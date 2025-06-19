@@ -34,7 +34,6 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Logo circular
               Container(
                 width: 140,
                 height: 140,
@@ -51,7 +50,6 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 48),
 
-              // Pergunta inicial
               if (!mostrarLogin) ...[
                 Text(
                   "O que deseja fazer?",
@@ -122,9 +120,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ],
 
-              // Formulário de Login
               if (mostrarLogin) ...[
-                // Campo de email
                 TextField(
                   controller: emailController,
                   decoration: InputDecoration(
@@ -142,7 +138,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 20),
 
-                // Campo de senha
                 TextField(
                   controller: senhaController,
                   decoration: InputDecoration(
@@ -160,7 +155,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 18),
 
-                // Erro
                 if (errorMsg != null)
                   Padding(
                     padding: const EdgeInsets.only(bottom: 12),
@@ -170,7 +164,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
 
-                // Botão Login
                 SizedBox(
                   width: 90,
                   height: 36,
@@ -201,7 +194,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 14),
 
-                // Botão Voltar
                 SizedBox(
                   width: 90,
                   height: 36,
@@ -257,7 +249,6 @@ class _LoginScreenState extends State<LoginScreen> {
         return;
       }
 
-      // Busca o documento do usuário na coleção "users"
       final userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
 
       if (!userDoc.exists) {

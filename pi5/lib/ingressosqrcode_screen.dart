@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:screen_brightness/screen_brightness.dart'; // Adicione no pubspec.yaml
+import 'package:screen_brightness/screen_brightness.dart';
 
 class IngressosQRCodesScreen extends StatefulWidget {
   final String nomeEvento;
@@ -92,7 +92,6 @@ class _IngressosQRCodesScreenState extends State<IngressosQRCodesScreen> {
             );
           }
 
-          // --- NOVO: separar ativos dos inativos
           final ativos = tickets.where((d) => (d['status'] ?? '') == 'ativo').toList();
           final inativos = tickets.where((d) => (d['status'] ?? '') != 'ativo').toList();
           final ticketsOrdenados = [...ativos, ...inativos];
