@@ -37,6 +37,17 @@ O **ApaeOn** foi desenvolvido para simplificar a gestão de eventos da APAE Itap
 - **Firebase Functions/Google Cloud VM** (API Flask/PDF)
 - **Packages:** qr_flutter, firebase_core, cloud_firestore, firebase_auth, firebase_storage, image_picker, url_launcher, http
 
+## **Equipe**
+Professor Orientador: Lúcio Pelizzer Paris
+
+Líder do Projeto: [Luis Gustavo Lima Junior](https://github.com/LuisGlima)
+
+Desenvolvedores: 
+- [Marco Antonio Lourenci Silva](https://github.com/marcolaoff)
+- [Matheus Ferreira Machado](https://github.com/speeky00)
+- [Adriano Ferreira Junior](https://github.com/AdrianoJr07)
+- [Luis Henrique Topan](https://github.com/lui0908)
+
 ## 📲 Como Executar
 
 **Pré-requisitos:**  
@@ -60,13 +71,3 @@ flutter pub get
 flutter run
 
 
-**Equipe**
-Professor Orientador: Lúcio Pelizzer Paris
-
-Líder do Projeto: Luis Gustavo Lima Junior
-
-Desenvolvedores: 
-- Matheus Ferreira Machado
-- Marco Antonio Lourenci 
-- Luis Henrique Topan de Lima 
-- Adriano Ferreira Junior
