@@ -54,7 +54,7 @@ Para facilitar o acesso ao aplicativo, disponibilizamos um QR Code que leva dire
 
 ### 🔗 Baixe escaneando este QR Code:
 
-<img src="assets/qr_code_drive.png" alt="QR Code de Download" width="250"/>
+<img src="assets/qr_code_drive.PNG" alt="QR Code de Download" width="250"/>
 
 > **Nota:** Se o navegador não permitir o download direto, clique em “Abrir no Drive” ou “Fazer o download mesmo assim”.
 
