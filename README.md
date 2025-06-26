@@ -58,11 +58,12 @@ Para facilitar o acesso ao aplicativo, disponibilizamos um QR Code que leva dire
 
 > **Nota:** Se o navegador não permitir o download direto, clique em “Abrir no Drive” ou “Fazer o download mesmo assim”.
 
-## 📲 Como Executar
+## 📲 Como Executar no Android Studio
 
 **Pré-requisitos:**  
 - Flutter instalado ([guia oficial](https://docs.flutter.dev/get-started/install))
 - Conta e projeto no Firebase
+- Emulador configurado
 
 ### 1. Clone o repositório
 
