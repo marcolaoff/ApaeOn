@@ -146,10 +146,10 @@ class EventosTab extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        CircleAvatar(
+                        const CircleAvatar(
                           radius: 16,
                           backgroundColor: Colors.blueAccent,
-                          child: const Icon(
+                          child: Icon(
                             Icons.event,
                             color: Colors.white,
                             size: 18,
@@ -190,7 +190,7 @@ class EventosTab extends StatelessWidget {
                               height: 100,
                               width: double.infinity,
                               color: isDark ? Colors.red[900] : Colors.red[200],
-                              child: Center(
+                              child: const Center(
                                 child: Text(
                                   'URL NULA',
                                   style: TextStyle(color: Colors.white),
@@ -207,7 +207,7 @@ class EventosTab extends StatelessWidget {
                               isDark
                                   ? Colors.orange[900]
                                   : Colors.orange[200],
-                              child: Center(
+                              child: const Center(
                                 child: Text(
                                   'URL VAZIA',
                                   style: TextStyle(color: Colors.white),
@@ -330,8 +330,9 @@ class MeusIngressosTab extends StatelessWidget {
         final eventId = ticket['eventId'];
         if (eventId == null || (eventId is String && eventId
             .trim()
-            .isEmpty))
+            .isEmpty)) {
           continue;
+        }
 
         if (!grouped.containsKey(eventId)) {
           final eventSnap =
@@ -430,10 +431,10 @@ class MeusIngressosTab extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        CircleAvatar(
+                        const CircleAvatar(
                           radius: 16,
                           backgroundColor: Colors.blueAccent,
-                          child: const Icon(
+                          child: Icon(
                             Icons.event,
                             color: Colors.white,
                             size: 18,
@@ -535,7 +536,7 @@ class MeusIngressosTab extends StatelessWidget {
                     const SizedBox(height: 12),
                     Text(
                       'Quantidade de ingressos: ${tickets.length}',
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.bold,
                         color: Colors.blueGrey,
@@ -631,7 +632,7 @@ class ConfiguracoesTab extends StatelessWidget {
                       ),
                       Switch(
                         value: isDark,
-                        activeColor: Colors.black,
+                        activeThumbColor: Colors.black,
                         onChanged: (val) {
                           if (onToggleTheme != null) {
                             onToggleTheme!(val);
@@ -678,11 +679,11 @@ class ConfiguracoesTab extends StatelessWidget {
                               decoration: BoxDecoration(
                                 color: cardColor,
                                 borderRadius: BorderRadius.circular(16),
-                                boxShadow: [
+                                boxShadow: const [
                                   BoxShadow(
                                     color: Colors.black12,
                                     blurRadius: 16,
-                                    offset: const Offset(0, 8),
+                                    offset: Offset(0, 8),
                                   ),
                                 ],
                               ),

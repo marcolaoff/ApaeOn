@@ -237,7 +237,7 @@ class _PerfilUsuarioScreenState extends State<PerfilUsuarioScreen> {
                         child: CircleAvatar(
                           backgroundColor: isDark ? Colors.white12 : Colors.black54,
                           child: IconButton(
-                            icon: Icon(Icons.camera_alt, color: Colors.white, size: 20),
+                            icon: const Icon(Icons.camera_alt, color: Colors.white, size: 20),
                             onPressed: alterandoFoto ? null : _alterarFoto,
                           ),
                         ),
@@ -326,11 +326,10 @@ class _PerfilUsuarioScreenState extends State<PerfilUsuarioScreen> {
                           context: context,
                           builder: (context) => Theme(
                             data: Theme.of(context).copyWith(
-                              dialogBackgroundColor: cardColor,
                               colorScheme: Theme.of(context).colorScheme.copyWith(
                                     primary: Colors.red,
                                     surface: cardColor,
-                                  ),
+                                  ), dialogTheme: DialogThemeData(backgroundColor: cardColor),
                             ),
                             child: AlertDialog(
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),

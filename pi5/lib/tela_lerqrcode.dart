@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
 class TelaQRCode extends StatefulWidget {
-  const TelaQRCode({Key? key}) : super(key: key);
+  const TelaQRCode({super.key});
 
   @override
   State<TelaQRCode> createState() => _TelaQRCodeState();

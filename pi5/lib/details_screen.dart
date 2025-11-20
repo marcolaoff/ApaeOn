@@ -85,10 +85,10 @@ class DetailsScreen extends StatelessWidget {
                       // Header
                       Row(
                         children: [
-                          CircleAvatar(
+                          const CircleAvatar(
                             radius: 22,
                             backgroundColor: Colors.blueAccent,
-                            child: const Icon(Icons.event, color: Colors.white, size: 24),
+                            child: Icon(Icons.event, color: Colors.white, size: 24),
                           ),
                           const SizedBox(width: 14),
                           Column(

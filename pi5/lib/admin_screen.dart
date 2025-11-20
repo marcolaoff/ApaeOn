@@ -167,7 +167,7 @@ class _GerenciarEventosTabState extends State<GerenciarEventosTab> {
                     ),
                     const SizedBox(height: 8),
                     DropdownButtonFormField<String>(
-                      value: status,
+                      initialValue: status,
                       decoration: const InputDecoration(labelText: 'Status'),
                       items: const [
                         DropdownMenuItem(value: 'ativo', child: Text('Ativo')),
@@ -218,11 +218,10 @@ class _GerenciarEventosTabState extends State<GerenciarEventosTab> {
           ),
           actions: [
             TextButton(
-              child: const Text('Cancelar'),
               onPressed: carregandoLocal ? null : () => Navigator.pop(context),
+              child: const Text('Cancelar'),
             ),
             ElevatedButton(
-              child: Text(doc == null ? 'Adicionar' : 'Salvar'),
               onPressed: carregandoLocal
                   ? null
                   : () async {
@@ -253,6 +252,7 @@ class _GerenciarEventosTabState extends State<GerenciarEventosTab> {
                       }
                       Navigator.pop(context);
                     },
+              child: Text(doc == null ? 'Adicionar' : 'Salvar'),
             ),
           ],
         ),
@@ -272,9 +272,9 @@ class _GerenciarEventosTabState extends State<GerenciarEventosTab> {
           onPressed: () => Navigator.pop(context, false),
         ),
         ElevatedButton(
-          child: const Text('Remover'),
           onPressed: () => Navigator.pop(context, true),
           style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+          child: const Text('Remover'),
         ),
       ],
     ),

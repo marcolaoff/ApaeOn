@@ -53,11 +53,10 @@ class _MainAppState extends State<MainApp> {
           labelStyle: const TextStyle(color: Colors.black87),
         ),
         cardColor: Colors.white,
-        dialogBackgroundColor: Colors.white,
         snackBarTheme: const SnackBarThemeData(
           backgroundColor: Colors.deepPurple,
           contentTextStyle: TextStyle(color: Colors.white),
-        ),
+        ), dialogTheme: DialogThemeData(backgroundColor: Colors.white),
       ),
       darkTheme: ThemeData(
         primarySwatch: Colors.deepPurple,
@@ -74,22 +73,21 @@ class _MainAppState extends State<MainApp> {
           titleMedium: TextStyle(color: Colors.white),
           labelLarge: TextStyle(color: Colors.deepPurpleAccent),
         ),
-        inputDecorationTheme: InputDecorationTheme(
+        inputDecorationTheme: const InputDecorationTheme(
           filled: true,
           fillColor: Color(0xFF232323),
           border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(8))),
           labelStyle: TextStyle(color: Colors.white70),
         ),
         cardColor: const Color(0xFF22212D),
-        dialogBackgroundColor: const Color(0xFF22212D),
         snackBarTheme: const SnackBarThemeData(
           backgroundColor: Colors.deepPurpleAccent,
           contentTextStyle: TextStyle(color: Colors.white),
         ),
         switchTheme: SwitchThemeData(
-          thumbColor: MaterialStateProperty.all(Colors.deepPurpleAccent),
-          trackColor: MaterialStateProperty.all(Colors.deepPurple),
-        ),
+          thumbColor: WidgetStateProperty.all(Colors.deepPurpleAccent),
+          trackColor: WidgetStateProperty.all(Colors.deepPurple),
+        ), dialogTheme: DialogThemeData(backgroundColor: const Color(0xFF22212D)),
       ),
       themeMode: _themeMode,
       debugShowCheckedModeBanner: false,
