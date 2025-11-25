@@ -543,55 +543,91 @@ class QRCodesGeradosScreen extends StatelessWidget {
     required this.ticketIds,
   });
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Meus Ingressos'),
-        automaticallyImplyLeading: false,
-      ),
-      body: FutureBuilder<List<DocumentSnapshot>>(
-        future: Future.wait(ticketIds.map((id) =>
-            FirebaseFirestore.instance.collection('tickets').doc(id).get())),
-        builder: (context, snapshot) {
-          if (!snapshot.hasData) {
-            return const Center(child: CircularProgressIndicator());
-          }
+ @override
+Widget build(BuildContext context) {
+  return Scaffold(
+    appBar: AppBar(
+      title: const Text('Meus Ingressos'),
+      automaticallyImplyLeading: false,
+    ),
+    body: Column(
+      children: [
+        // 🔹 Lista de ingressos
+        Expanded(
+          child: FutureBuilder<List<DocumentSnapshot>>(
+            future: Future.wait(ticketIds.map((id) =>
+                FirebaseFirestore.instance.collection('tickets').doc(id).get())),
+            builder: (context, snapshot) {
+              if (!snapshot.hasData) {
+                return const Center(child: CircularProgressIndicator());
+              }
 
-          final tickets = snapshot.data!;
+              final tickets = snapshot.data!;
 
-          return ListView.separated(
-            padding: const EdgeInsets.all(24),
-            itemCount: tickets.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 20),
-            itemBuilder: (context, i) {
-              final data =
-                  tickets[i].data() as Map<String, dynamic>? ?? {};
-              final tipo = data['tipo'] ?? '';
-              final qrData = data['qrCodeData'] ?? '';
+              return ListView.separated(
+                padding: const EdgeInsets.all(24),
+                itemCount: tickets.length,
+                separatorBuilder: (_, __) => const SizedBox(height: 20),
+                itemBuilder: (context, i) {
+                  final data = tickets[i].data() as Map<String, dynamic>? ?? {};
+                  final tipo = data['tipo'] ?? '';
+                  final qrData = data['qrCodeData'] ?? '';
 
-              return Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(22),
-                  child: Column(
-                    children: [
-                      QrImageView(
-                        data: qrData,
-                        size: 180,
-                        version: QrVersions.auto,
+                  return Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(22),
+                      child: Column(
+                        children: [
+                          QrImageView(
+                            data: qrData,
+                            size: 180,
+                            version: QrVersions.auto,
+                          ),
+                          const SizedBox(height: 12),
+                          Text('Tipo: $tipo'),
+                          Text('Código: $qrData',
+                              style: const TextStyle(fontSize: 12)),
+                        ],
                       ),
-                      const SizedBox(height: 12),
-                      Text('Tipo: $tipo'),
-                      Text('Código: $qrData',
-                          style: const TextStyle(fontSize: 12)),
-                    ],
-                  ),
-                ),
+                    ),
+                  );
+                },
               );
             },
-          );
-        },
-      ),
-    );
-  }
+          ),
+        ),
+
+        // 🔹 BOTÃO "VOLTAR PARA EVENTOS"
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+          child: SizedBox(
+            width: double.infinity,
+            height: 48,
+            child: ElevatedButton.icon(
+              icon: const Icon(Icons.event, color: Colors.white),
+              label: const Text(
+                'Voltar para Eventos',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.deepPurple,
+                elevation: 2,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              onPressed: () {
+                Navigator.of(context).popUntil((route) => route.isFirst);
+              },
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
+}
 }
