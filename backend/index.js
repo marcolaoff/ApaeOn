@@ -2,7 +2,8 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const dotenv = require("dotenv");
-const mercadopago = require("mercadopago");
+const crypto = require("crypto");
+const axios = require("axios");
 
 dotenv.config();
 
@@ -10,39 +11,66 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
-// Config Mercado Pago (versão 1.5.14)
-mercadopago.configure({
-    access_token: process.env.MP_ACCESS_TOKEN
-});
-
-app.get("/", (req, res) => {
-    res.send("API Mercado Pago funcionando!");
-});
-
+// Criar PIX Dinâmico via API oficial do Mercado Pago
 app.post("/pix", async (req, res) => {
     try {
         const { amount, email, fullName } = req.body;
 
-        const payment = await mercadopago.payment.create({
-            transaction_amount: Number(amount),
-            description: "Pagamento via PIX",
-            payment_method_id: "pix",
-            payer: {
-                email: email,
-                first_name: fullName
-            }
-        });
+        // Idempotência obrigatória
+        const idemKey = crypto.randomUUID();
 
-        return res.status(200).json(payment.body);
-    } catch (error) {
-        console.error("Erro no PIX:", error);
-        res.status(500).json({ error: error.message });
+        const response = await axios.post(
+            "https://api.mercadopago.com/v1/payments",
+            {
+                transaction_amount: Number(amount),
+                description: "Pagamento via PIX - ApaeOn",
+                payment_method_id: "pix",
+                payer: {
+                    email: email,
+                    first_name: fullName
+                }
+            },
+            {
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-Idempotency-Key": idemKey,
+                    Authorization: `Bearer ${process.env.MP_ACCESS_TOKEN}`
+                }
+            }
+        );
+
+        console.log("PIX criado:", response.data);
+
+        return res.json(response.data);
+
+    } catch (err) {
+        console.error("Erro ao gerar PIX:", err.response?.data || err.message);
+        res.status(500).json({
+            error: err.response?.data || err.message
+        });
     }
 });
 
-app.post("/webhook", (req, res) => {
-    console.log("Webhook recebido:", req.body);
-    res.sendStatus(200);
+// Consulta pagamento
+app.get("/payment/:id", async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const response = await axios.get(
+            `https://api.mercadopago.com/v1/payments/${id}`,
+            {
+                headers: {
+                    Authorization: `Bearer ${process.env.MP_ACCESS_TOKEN}`
+                }
+            }
+        );
+
+        return res.json(response.data);
+    } catch (err) {
+        res.status(500).json({
+            error: err.response?.data || err.message
+        });
+    }
 });
 
 const port = process.env.PORT || 3000;
