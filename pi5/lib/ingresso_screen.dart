@@ -7,9 +7,8 @@ import 'package:http/http.dart' as http;
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
 
-// BASE URL AUTOMÁTICA (Chrome / Android Emulador)
-const String baseUrl =
-    kIsWeb ? 'http://localhost:3000' : 'http://10.0.2.2:3000';
+// BASE URL FIXA DO BACKEND NO RENDER
+const String baseUrl = 'https://apaeon.onrender.com';
 
 class IngressoScreen extends StatefulWidget {
   final String eventId;
@@ -224,7 +223,8 @@ class _IngressoScreenState extends State<IngressoScreen> {
                         IconButton(
                           icon: Icon(Icons.add_circle_outline,
                               color: textColor),
-                          onPressed: () => setState(() => quantidadeMeia++),
+                          onPressed: () =>
+                              setState(() => quantidadeMeia++),
                         ),
                       ],
                     ),
@@ -336,8 +336,7 @@ class _IngressoScreenState extends State<IngressoScreen> {
                           }
                         : null,
                     child: _loading
-                        ? const CircularProgressIndicator(
-                            strokeWidth: 2)
+                        ? const CircularProgressIndicator(strokeWidth: 2)
                         : const Text('Confirmar Compra'),
                   ),
                 ),
@@ -350,7 +349,10 @@ class _IngressoScreenState extends State<IngressoScreen> {
   }
 }
 
+// =====================================================================
 // PAGAMENTO PIX
+// =====================================================================
+
 class PagamentoPixScreen extends StatefulWidget {
   final String paymentId;
   final String? qrBase64;
@@ -378,7 +380,7 @@ class PagamentoPixScreen extends StatefulWidget {
 class _PagamentoPixScreenState extends State<PagamentoPixScreen> {
   bool _checking = false;
   bool _paid = false;
-  String _statusMessage = 'Aguardando pagamento...';
+  String _statusMessage = 'Aguardando pagamento.';
 
   Future<void> _copiarCopiaCola() async {
     await Clipboard.setData(
@@ -533,7 +535,9 @@ class _PagamentoPixScreenState extends State<PagamentoPixScreen> {
   }
 }
 
-
+// =====================================================================
+// TELA DE EXIBIÇÃO DOS QR CODES GERADOS
+// =====================================================================
 
 class QRCodesGeradosScreen extends StatelessWidget {
   final List<String> ticketIds;
@@ -543,91 +547,93 @@ class QRCodesGeradosScreen extends StatelessWidget {
     required this.ticketIds,
   });
 
- @override
-Widget build(BuildContext context) {
-  return Scaffold(
-    appBar: AppBar(
-      title: const Text('Meus Ingressos'),
-      automaticallyImplyLeading: false,
-    ),
-    body: Column(
-      children: [
-        // 🔹 Lista de ingressos
-        Expanded(
-          child: FutureBuilder<List<DocumentSnapshot>>(
-            future: Future.wait(ticketIds.map((id) =>
-                FirebaseFirestore.instance.collection('tickets').doc(id).get())),
-            builder: (context, snapshot) {
-              if (!snapshot.hasData) {
-                return const Center(child: CircularProgressIndicator());
-              }
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Meus Ingressos'),
+        automaticallyImplyLeading: false,
+      ),
+      body: Column(
+        children: [
+          Expanded(
+            child: FutureBuilder<List<DocumentSnapshot>>(
+              future: Future.wait(ticketIds.map((id) =>
+                  FirebaseFirestore.instance
+                      .collection('tickets')
+                      .doc(id)
+                      .get())),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) {
+                  return const Center(child: CircularProgressIndicator());
+                }
 
-              final tickets = snapshot.data!;
+                final tickets = snapshot.data!;
 
-              return ListView.separated(
-                padding: const EdgeInsets.all(24),
-                itemCount: tickets.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 20),
-                itemBuilder: (context, i) {
-                  final data = tickets[i].data() as Map<String, dynamic>? ?? {};
-                  final tipo = data['tipo'] ?? '';
-                  final qrData = data['qrCodeData'] ?? '';
+                return ListView.separated(
+                  padding: const EdgeInsets.all(24),
+                  itemCount: tickets.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 20),
+                  itemBuilder: (context, i) {
+                    final data =
+                        tickets[i].data() as Map<String, dynamic>? ?? {};
+                    final tipo = data['tipo'] ?? '';
+                    final qrData = data['qrCodeData'] ?? '';
 
-                  return Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(22),
-                      child: Column(
-                        children: [
-                          QrImageView(
-                            data: qrData,
-                            size: 180,
-                            version: QrVersions.auto,
-                          ),
-                          const SizedBox(height: 12),
-                          Text('Tipo: $tipo'),
-                          Text('Código: $qrData',
-                              style: const TextStyle(fontSize: 12)),
-                        ],
+                    return Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(22),
+                        child: Column(
+                          children: [
+                            QrImageView(
+                              data: qrData,
+                              size: 180,
+                              version: QrVersions.auto,
+                            ),
+                            const SizedBox(height: 12),
+                            Text('Tipo: $tipo'),
+                            Text('Código: $qrData',
+                                style: const TextStyle(fontSize: 12)),
+                          ],
+                        ),
                       ),
-                    ),
-                  );
-                },
-              );
-            },
-          ),
-        ),
-
-        // 🔹 BOTÃO "VOLTAR PARA EVENTOS"
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-          child: SizedBox(
-            width: double.infinity,
-            height: 48,
-            child: ElevatedButton.icon(
-              icon: const Icon(Icons.event, color: Colors.white),
-              label: const Text(
-                'Voltar para Eventos',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.deepPurple,
-                elevation: 2,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              onPressed: () {
-                Navigator.of(context).popUntil((route) => route.isFirst);
+                    );
+                  },
+                );
               },
             ),
           ),
-        ),
-      ],
-    ),
-  );
-}
+
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+            child: SizedBox(
+              width: double.infinity,
+              height: 48,
+              child: ElevatedButton.icon(
+                icon: const Icon(Icons.event, color: Colors.white),
+                label: const Text(
+                  'Voltar para Eventos',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.deepPurple,
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                onPressed: () {
+                  Navigator.of(context).popUntil((route) => route.isFirst);
+                },
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
