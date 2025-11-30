@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
 class TelaQRCode extends StatefulWidget {
-  const TelaQRCode({super.key});
+  const TelaQRCode({Key? key}) : super(key: key);
 
   @override
   State<TelaQRCode> createState() => _TelaQRCodeState();
@@ -47,7 +47,9 @@ class _TelaQRCodeState extends State<TelaQRCode> {
       final doc = query.docs.first;
       final ticket = doc.data();
 
-      if (ticket['status'] == 'inativo') {
+      final status = (ticket['status'] ?? '').toString().toLowerCase();
+
+      if (status == 'inativo') {
         setState(() {
           resultado = 'Ingresso já foi utilizado!';
           carregando = false;
@@ -71,22 +73,27 @@ class _TelaQRCodeState extends State<TelaQRCode> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final textColor = Theme.of(context).textTheme.bodyLarge?.color;
-    final cardColor = Theme.of(context).cardColor;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final textColor =
+        theme.textTheme.bodyLarge?.color ?? (isDark ? Colors.white : Colors.black);
+    final cardColor = theme.cardColor;
 
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
-        iconTheme: Theme.of(context).appBarTheme.iconTheme,
+        backgroundColor: theme.appBarTheme.backgroundColor,
+        iconTheme: theme.appBarTheme.iconTheme ?? IconThemeData(color: textColor),
+        elevation: 0,
         title: Text(
           'Validação de Ingressos',
-          style: TextStyle(
-            color: Theme.of(context).appBarTheme.titleTextStyle?.color ?? textColor,
-          ),
+          style: theme.appBarTheme.titleTextStyle ??
+              TextStyle(
+                color: textColor,
+                fontWeight: FontWeight.bold,
+                fontSize: 18,
+              ),
         ),
-        elevation: 0,
       ),
       body: Center(
         child: Padding(
@@ -109,25 +116,30 @@ class _TelaQRCodeState extends State<TelaQRCode> {
                 ),
                 onPressed: carregando ? null : _abrirLeitorQRCode,
                 icon: Icon(Icons.qr_code, color: textColor),
-                label: Text('Validar Ingresso', style: TextStyle(color: textColor)),
+                label: Text(
+                  'Validar Ingresso',
+                  style: TextStyle(color: textColor),
+                ),
               ),
+
               const SizedBox(height: 32),
+
               if (carregando) const CircularProgressIndicator(),
+
               if (resultado.isNotEmpty)
                 Padding(
                   padding: const EdgeInsets.only(top: 20),
                   child: Text(
                     resultado,
                     style: TextStyle(
-                      color: resultado.contains('SUCESSO')
-                          ? Colors.green
-                          : Colors.red,
+                      color: resultado.contains('SUCESSO') ? Colors.green : Colors.red,
                       fontWeight: FontWeight.bold,
                       fontSize: 18,
                     ),
                     textAlign: TextAlign.center,
                   ),
                 ),
+
               if (cameraAberta) ...[
                 const SizedBox(height: 24),
                 SizedBox(
@@ -137,10 +149,17 @@ class _TelaQRCodeState extends State<TelaQRCode> {
                     child: MobileScanner(
                       fit: BoxFit.contain,
                       onDetect: (capture) {
-                        final barcode = capture.barcodes.first;
-                        if (barcode.rawValue == null || processando) return;
+                        final barcodes = capture.barcodes;
+                        if (barcodes.isEmpty) return;
+
+                        final barcode = barcodes.first;
+                        final value = barcode.rawValue;
+
+                        if (value == null || processando) return;
+
+                        // evita múltiplas leituras seguidas
                         processando = true;
-                        _processarQRCode(barcode.rawValue!).whenComplete(() {
+                        _processarQRCode(value).whenComplete(() {
                           processando = false;
                         });
                       },
@@ -150,7 +169,10 @@ class _TelaQRCodeState extends State<TelaQRCode> {
                 const SizedBox(height: 8),
                 TextButton(
                   onPressed: () {
-                    setState(() => cameraAberta = false);
+                    setState(() {
+                      cameraAberta = false;
+                      resultado = '';
+                    });
                   },
                   child: Text(
                     'Cancelar',

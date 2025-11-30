@@ -16,33 +16,51 @@ class DetailsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = darkMode;
-    final textColor = Theme.of(context).textTheme.bodyLarge?.color;
-    final cardColor = Theme.of(context).cardColor;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    final textColor =
+        theme.textTheme.bodyLarge?.color ??
+        (isDark ? Colors.white : Colors.black);
+
+    final textSecondary =
+        theme.textTheme.bodyMedium?.color ??
+        (isDark ? Colors.white70 : Colors.black54);
+
+    final cardColor = theme.cardColor;
+    final appBarBg = theme.appBarTheme.backgroundColor ?? theme.scaffoldBackgroundColor;
 
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
+        backgroundColor: appBarBg,
         elevation: 0,
         title: Text(
           'Detalhes do Evento',
-          style: TextStyle(
-            color: Theme.of(context).appBarTheme.titleTextStyle?.color ?? (isDark ? Colors.white : Colors.black),
-            fontWeight: FontWeight.bold,
-          ),
+          style: theme.appBarTheme.titleTextStyle ??
+              TextStyle(
+                color: textColor,
+                fontWeight: FontWeight.bold,
+              ),
         ),
-        iconTheme: IconThemeData(
-          color: Theme.of(context).appBarTheme.iconTheme?.color ?? (isDark ? Colors.white : Colors.black),
-        ),
+        iconTheme: theme.appBarTheme.iconTheme ??
+            IconThemeData(
+              color: textColor,
+            ),
       ),
       body: FutureBuilder<DocumentSnapshot>(
-        future: FirebaseFirestore.instance.collection('events').doc(eventId).get(),
+        future: FirebaseFirestore.instance
+            .collection('events')
+            .doc(eventId)
+            .get(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
-          if (snapshot.hasError || !snapshot.hasData || !snapshot.data!.exists) {
+
+          if (snapshot.hasError ||
+              !snapshot.hasData ||
+              !snapshot.data!.exists) {
             return Center(
               child: Text(
                 'Evento não encontrado',
@@ -59,18 +77,25 @@ class DetailsScreen extends StatelessWidget {
           final infoAdicionais = data['Informações Adicionais'] ?? '';
           final dataTimestamp = data['data'];
           final imageUrl = data['imageUrl'] as String?;
-          final preco = (data['preco'] as num?)?.toDouble() ?? 0.0; // <-- Aqui pega o preço
+          final preco = (data['preco'] as num?)?.toDouble() ?? 0.0;
 
           String dataFormatada = '';
           if (dataTimestamp != null && dataTimestamp is Timestamp) {
             final date = dataTimestamp.toDate();
             dataFormatada =
-              '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year} às ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
+                '${date.day.toString().padLeft(2, '0')}/'
+                '${date.month.toString().padLeft(2, '0')}/'
+                '${date.year} às '
+                '${date.hour.toString().padLeft(2, '0')}:'
+                '${date.minute.toString().padLeft(2, '0')}';
           }
 
           return Center(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 20),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 18,
+                vertical: 20,
+              ),
               child: Card(
                 elevation: 3,
                 color: cardColor,
@@ -78,17 +103,25 @@ class DetailsScreen extends StatelessWidget {
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 26),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 22,
+                    vertical: 26,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Header
+                      // Cabeçalho
                       Row(
                         children: [
-                          const CircleAvatar(
+                          CircleAvatar(
                             radius: 22,
-                            backgroundColor: Colors.blueAccent,
-                            child: Icon(Icons.event, color: Colors.white, size: 24),
+                            backgroundColor:
+                                theme.colorScheme.primary,
+                            child: const Icon(
+                              Icons.event,
+                              color: Colors.white,
+                              size: 24,
+                            ),
                           ),
                           const SizedBox(width: 14),
                           Column(
@@ -107,7 +140,7 @@ class DetailsScreen extends StatelessWidget {
                                 'Data: $dataFormatada',
                                 style: TextStyle(
                                   fontSize: 14,
-                                  color: isDark ? Colors.white60 : Colors.black54,
+                                  color: textSecondary,
                                 ),
                               ),
                               const SizedBox(height: 2),
@@ -115,7 +148,7 @@ class DetailsScreen extends StatelessWidget {
                                 'Local: $local',
                                 style: TextStyle(
                                   fontSize: 14,
-                                  color: isDark ? Colors.white60 : Colors.black54,
+                                  color: textSecondary,
                                 ),
                               ),
                               const SizedBox(height: 2),
@@ -124,7 +157,7 @@ class DetailsScreen extends StatelessWidget {
                                 style: TextStyle(
                                   fontSize: 15,
                                   fontWeight: FontWeight.bold,
-                                  color: isDark ? Colors.white60 : Colors.black54,
+                                  color: textSecondary,
                                 ),
                               ),
                             ],
@@ -133,11 +166,13 @@ class DetailsScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 22),
 
+                      // Imagem
                       Container(
                         height: 150,
                         width: double.infinity,
                         decoration: BoxDecoration(
-                          color: isDark ? Colors.grey[800] : Colors.grey[300],
+                          color:
+                              isDark ? Colors.grey[800] : Colors.grey[300],
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: imageUrl != null && imageUrl.isNotEmpty
@@ -147,25 +182,40 @@ class DetailsScreen extends StatelessWidget {
                                   imageUrl,
                                   fit: BoxFit.cover,
                                   errorBuilder: (context, error, stackTrace) =>
-                                    Center(
-                                      child: Icon(
-                                        Icons.broken_image,
-                                        size: 56,
-                                        color: isDark ? Colors.white54 : Colors.grey,
-                                      ),
+                                      Center(
+                                    child: Icon(
+                                      Icons.broken_image,
+                                      size: 56,
+                                      color: isDark
+                                          ? Colors.white54
+                                          : Colors.grey,
                                     ),
-                                  loadingBuilder: (context, child, loadingProgress) {
-                                    if (loadingProgress == null) return child;
-                                    return const Center(child: CircularProgressIndicator());
+                                  ),
+                                  loadingBuilder:
+                                      (context, child, loadingProgress) {
+                                    if (loadingProgress == null) {
+                                      return child;
+                                    }
+                                    return const Center(
+                                      child:
+                                          CircularProgressIndicator(),
+                                    );
                                   },
                                 ),
                               )
                             : Center(
-                                child: Icon(Icons.image, size: 56, color: isDark ? Colors.white54 : Colors.grey),
+                                child: Icon(
+                                  Icons.image,
+                                  size: 56,
+                                  color: isDark
+                                      ? Colors.white54
+                                      : Colors.grey,
+                                ),
                               ),
                       ),
                       const SizedBox(height: 22),
 
+                      // Descrição
                       Text(
                         'Descrição',
                         style: TextStyle(
@@ -184,6 +234,7 @@ class DetailsScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 18),
 
+                      // Informações adicionais
                       Text(
                         'Informações adicionais',
                         style: TextStyle(
@@ -202,19 +253,22 @@ class DetailsScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 28),
 
+                      // Botão comprar
                       SizedBox(
                         width: double.infinity,
                         height: 44,
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: isDark ? Colors.deepPurpleAccent : Colors.white,
-                            foregroundColor: isDark ? Colors.white : Colors.black,
+                            backgroundColor: theme.colorScheme.primary,
+                            foregroundColor: theme.colorScheme.onPrimary,
                             elevation: 2,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
-                            side: const BorderSide(color: Colors.black12),
-                            textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                            textStyle: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                           onPressed: () {
                             Navigator.push(

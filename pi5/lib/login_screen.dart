@@ -20,20 +20,52 @@ class _LoginScreenState extends State<LoginScreen> {
   String? errorMsg;
   bool mostrarLogin = false;
 
+  /// Traduz os códigos de erro do FirebaseAuth para mensagens em português
+  String _traduzErroFirebase(FirebaseAuthException e) {
+    switch (e.code) {
+      case 'invalid-email':
+        return 'E-mail inválido. Verifique o formato.';
+      case 'user-not-found':
+        return 'Nenhuma conta foi encontrada com este e-mail.';
+      case 'wrong-password':
+        return 'Senha incorreta. Tente novamente.';
+      case 'user-disabled':
+        return 'Esta conta foi desativada.';
+      case 'too-many-requests':
+        return 'Muitas tentativas de login. Aguarde e tente novamente.';
+      case 'network-request-failed':
+        return 'Falha de conexão. Verifique sua internet.';
+      case 'invalid-credential':
+        return 'E-mail ou senha incorretos. Verifique e tente novamente.';
+      default:
+        return 'Erro ao fazer login. Tente novamente.';
+    }
+  }
+
+  @override
+  void dispose() {
+    emailController.dispose();
+    senhaController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final textColor = Theme.of(context).textTheme.bodyLarge?.color;
-    final cardColor = Theme.of(context).cardColor;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final textColor =
+        theme.textTheme.bodyLarge?.color ?? (isDark ? Colors.white : Colors.black);
+    final cardColor = theme.cardColor;
 
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 32),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              // Logo
               Container(
                 width: 140,
                 height: 140,
@@ -50,6 +82,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 48),
 
+              // Tela inicial (escolha login / registrar)
               if (!mostrarLogin) ...[
                 Text(
                   "O que deseja fazer?",
@@ -78,6 +111,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     onPressed: () {
                       setState(() {
                         mostrarLogin = true;
+                        errorMsg = null;
                       });
                     },
                     child: const Text(
@@ -120,12 +154,15 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ],
 
+              // Tela de login (campos + botões)
               if (mostrarLogin) ...[
                 TextField(
                   controller: emailController,
                   decoration: InputDecoration(
                     labelText: 'Email',
-                    labelStyle: TextStyle(color: isDark ? Colors.white70 : Colors.black87),
+                    labelStyle: TextStyle(
+                      color: isDark ? Colors.white70 : Colors.black87,
+                    ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
@@ -142,7 +179,9 @@ class _LoginScreenState extends State<LoginScreen> {
                   controller: senhaController,
                   decoration: InputDecoration(
                     labelText: 'Senha',
-                    labelStyle: TextStyle(color: isDark ? Colors.white70 : Colors.black87),
+                    labelStyle: TextStyle(
+                      color: isDark ? Colors.white70 : Colors.black87,
+                    ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
@@ -160,6 +199,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     padding: const EdgeInsets.only(bottom: 12),
                     child: Text(
                       errorMsg!,
+                      textAlign: TextAlign.center,
                       style: const TextStyle(color: Colors.red),
                     ),
                   ),
@@ -230,16 +270,44 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> login() async {
+    final email = emailController.text.trim();
+    final senha = senhaController.text;
+
+    // ===== VALIDAÇÕES INICIAIS =====
+    if (email.isEmpty && senha.isEmpty) {
+      setState(() {
+        errorMsg = 'Preencha e-mail e senha para continuar.';
+      });
+      return;
+    }
+
+    if (email.isNotEmpty && senha.isEmpty) {
+      setState(() {
+        errorMsg = 'Digite sua senha para continuar.';
+      });
+      return;
+    }
+
+    if (email.isEmpty && senha.isNotEmpty) {
+      setState(() {
+        errorMsg = 'Digite seu e-mail para continuar.';
+      });
+      return;
+    }
+
     setState(() {
       loading = true;
       errorMsg = null;
     });
 
     try {
-      UserCredential userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: emailController.text.trim(),
-        password: senhaController.text,
+      // LOGIN NO FIREBASE AUTH
+      final userCredential =
+          await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: email,
+        password: senha,
       );
+
       final user = userCredential.user;
       if (user == null) {
         setState(() {
@@ -249,7 +317,11 @@ class _LoginScreenState extends State<LoginScreen> {
         return;
       }
 
-      final userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+      // BUSCA O DOC EM users/<uid>
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
 
       if (!userDoc.exists) {
         setState(() {
@@ -259,21 +331,32 @@ class _LoginScreenState extends State<LoginScreen> {
         return;
       }
 
-      final data = userDoc.data()!;
-      final isAdmin = data['isAdmin'] ?? false;
-      final nome = data['nome'] ?? '';
-      final emailUser = data['email'] ?? '';
+      final data = userDoc.data() ?? {};
+      final isAdmin = data['isAdmin'] == true; // garante bool
+      final nome = data['nome'] ?? (user.displayName ?? '');
+      final emailUser = data['email'] ?? (user.email ?? '');
 
       if (!mounted) return;
 
-      if (isAdmin == true) {
+      setState(() {
+        loading = false;
+      });
+
+      if (isAdmin) {
+        // ADMIN
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => AdminScreen(nome: nome, email: emailUser),
+            builder: (context) => AdminScreen(
+              nome: nome,
+              email: emailUser,
+              onToggleTheme: widget.onToggleTheme,
+              darkMode: Theme.of(context).brightness == Brightness.dark,
+            ),
           ),
         );
       } else {
+        // USUÁRIO NORMAL
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
@@ -284,11 +367,13 @@ class _LoginScreenState extends State<LoginScreen> {
         );
       }
     } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
       setState(() {
-        errorMsg = e.message;
+        errorMsg = _traduzErroFirebase(e);
         loading = false;
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         errorMsg = "Erro ao fazer login. Tente novamente.";
         loading = false;
