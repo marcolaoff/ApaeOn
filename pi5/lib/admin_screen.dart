@@ -13,7 +13,10 @@ import 'package:url_launcher/url_launcher.dart';
 import 'tela_lerqrcode.dart';
 import 'login_screen.dart';
 import 'perfil_screen.dart';
+import 'relatorio_pdf.dart';
 import 'sobre_apae_screen.dart';
+import 'package:printing/printing.dart';
+
 
 class AdminScreen extends StatefulWidget {
   final String nome;
@@ -896,42 +899,72 @@ class RelatorioTab extends StatefulWidget {
 }
 
 class _RelatorioTabState extends State<RelatorioTab> {
-  Map<String, dynamic>? relatorio;
   bool carregando = false;
   String? erro;
+  Map<String, dynamic>? relatorio;
 
-  Future<void> _buscarRelatorio() async {
+  Future<void> _gerarRelatorioLocal() async {
     setState(() {
       carregando = true;
       erro = null;
     });
+
     try {
-      const apiUrl = 'http://35.247.243.145:5000/relatorio/geral';
-      final response = await http.get(Uri.parse(apiUrl));
-      if (response.statusCode == 200) {
-        setState(() {
-          relatorio = json.decode(response.body);
-        });
-      } else {
-        setState(() {
-          erro = 'Erro ao obter relatório: ${response.body}';
+      // Buscar todos os eventos
+      final eventosSnap =
+      await FirebaseFirestore.instance.collection("events").get();
+
+      List eventos = [];
+      double totalGeral = 0;
+
+      for (var doc in eventosSnap.docs) {
+        final data = doc.data();
+        final eventId = doc.id;
+
+        final preco = (data["preco"] ?? 0).toDouble();
+
+        // Buscar ingressos vendidos
+        final ticketsSnap = await FirebaseFirestore.instance
+            .collection("tickets")
+            .where("eventId", isEqualTo: eventId)
+            .get();
+
+        final vendidos = ticketsSnap.docs.length;
+
+        // Se existir campo total no evento
+        final total = data["total"] ?? vendidos;
+        final naoVendidos = total - vendidos;
+
+        final arrecadado = vendidos * preco;
+        totalGeral += arrecadado;
+
+        eventos.add({
+          "evento": data["nome"] ?? "Evento sem nome",
+          "vendidos": vendidos,
+          "nao_vendidos": naoVendidos,
+          "arrecadado": arrecadado,
         });
       }
+
+      setState(() {
+        relatorio = {
+          "eventos": eventos,
+          "total_geral": totalGeral,
+        };
+      });
     } catch (e) {
       setState(() {
-        erro = 'Erro ao acessar API: $e';
+        erro = "Erro ao gerar relatório: $e";
       });
     } finally {
-      setState(() {
-        carregando = false;
-      });
+      setState(() => carregando = false);
     }
   }
 
   @override
   void initState() {
     super.initState();
-    _buscarRelatorio();
+    _gerarRelatorioLocal();
   }
 
   @override
@@ -940,88 +973,100 @@ class _RelatorioTabState extends State<RelatorioTab> {
       body: carregando
           ? const Center(child: CircularProgressIndicator())
           : erro != null
-              ? Center(
-                  child: Text(
-                    erro!,
-                    style: const TextStyle(color: Colors.red),
-                  ),
-                )
-              : relatorio == null
-                  ? const Center(
-                      child: Text('Nenhum relatório encontrado.'),
-                    )
-                  : Padding(
-                      padding: const EdgeInsets.all(20),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            "Relatório Geral de Eventos",
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18,
-                            ),
-                          ),
-                          const SizedBox(height: 20),
-                          if (relatorio!['eventos'] != null)
-                            Expanded(
-                              child: ListView.builder(
-                                itemCount: relatorio!['eventos'].length,
-                                itemBuilder: (context, i) {
-                                  final e = relatorio!['eventos'][i];
-                                  return Card(
-                                    margin: const EdgeInsets.only(bottom: 14),
-                                    child: ListTile(
-                                      title: Text(
-                                        e['evento'] ?? '',
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      subtitle: Text(
-                                        "Vendidos: ${e['vendidos']}  |  Não vendidos: ${e['nao_vendidos']}\n"
-                                        "Arrecadado: R\$ ${e['arrecadado'].toStringAsFixed(2)}",
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
-                            ),
-                          const SizedBox(height: 10),
-                          Text(
-                            "Total geral arrecadado: R\$ ${relatorio!['total_geral']?.toStringAsFixed(2) ?? '0.00'}",
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 15,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          if (relatorio!['pdf_url'] != null)
-                            SizedBox(
-                              width: double.infinity,
-                              child: ElevatedButton.icon(
-                                icon: const Icon(Icons.picture_as_pdf),
-                                label: const Text("Abrir Relatório PDF"),
-                                onPressed: () => launchUrl(
-                                  Uri.parse(relatorio!['pdf_url']!),
-                                ),
-                              ),
-                            ),
-                          const SizedBox(height: 6),
-                          SizedBox(
-                            width: double.infinity,
-                            child: OutlinedButton.icon(
-                              icon: const Icon(Icons.refresh),
-                              label: const Text("Atualizar Relatório"),
-                              onPressed: _buscarRelatorio,
-                            ),
-                          ),
-                        ],
+          ? Center(
+        child: Text(
+          erro!,
+          style: const TextStyle(color: Colors.red),
+        ),
+      )
+          : relatorio == null
+          ? const Center(child: Text("Nenhum relatório encontrado."))
+          : Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              "Relatório Geral de Eventos",
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 18,
+              ),
+            ),
+            const SizedBox(height: 20),
+
+            // Lista de eventos
+            Expanded(
+              child: ListView.builder(
+                itemCount: relatorio!["eventos"].length,
+                itemBuilder: (context, index) {
+                  final e = relatorio!["eventos"][index];
+                  return Card(
+                    margin:
+                    const EdgeInsets.only(bottom: 14),
+                    child: ListTile(
+                      title: Text(
+                        e["evento"],
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold),
+                      ),
+                      subtitle: Text(
+                        "Vendidos: ${e['vendidos']} | "
+                            "Não vendidos: ${e['nao_vendidos']}\n"
+                            "Arrecadado: R\$ ${e['arrecadado'].toStringAsFixed(2)}",
                       ),
                     ),
+                  );
+                },
+              ),
+            ),
+
+            const SizedBox(height: 10),
+
+            // Total geral
+            Text(
+              "Total geral arrecadado: R\$ ${relatorio!['total_geral'].toStringAsFixed(2)}",
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            // Botão PDF
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                icon: const Icon(Icons.picture_as_pdf),
+                label: const Text("Gerar PDF"),
+                onPressed: () async {
+                  final pdf = await RelatorioPDF.gerarPDF(relatorio!);
+                  await Printing.layoutPdf(
+                    onLayout: (_) async => pdf,
+                  );
+                },
+              ),
+            ),
+
+            const SizedBox(height: 10),
+
+            // Atualizar
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                icon: const Icon(Icons.refresh),
+                label: const Text("Atualizar"),
+                onPressed: _gerarRelatorioLocal,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
+
 
 // =====================================================================
 // VALIDAR INGRESSOS

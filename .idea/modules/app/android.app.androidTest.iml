@@ -59,7 +59,9 @@
     <orderEntry type="module" module-name="android.flutter_plugin_android_lifecycle.main" scope="TEST" />
     <orderEntry type="module" module-name="android.image_picker_android.main" scope="TEST" />
     <orderEntry type="module" module-name="android.mobile_scanner.main" scope="TEST" />
-    <orderEntry type="module" module-name="android.url_launcher_android.main" scope="TEST" />
+    <orderEntry type="module" module-name="android.printing.main" scope="TEST" />
+    <orderEntry type="module" module-name="android.screen_brightness_android.main" scope="TEST" />
+    <orderEntry type="module" module-name="url_launcher_android-6.3.20.android.url_launcher_android.main" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="Gradle: androidx.lifecycle:lifecycle-process:2.7.0@aar" level="project" />
     <orderEntry type="library" scope="TEST" name="Gradle: androidx.lifecycle:lifecycle-runtime:2.7.0@aar" level="project" />
     <orderEntry type="library" scope="TEST" name="Gradle: androidx.startup:startup-runtime:1.1.1@aar" level="project" />

@@ -11,10 +11,14 @@
       <module name="android.flutter_plugin_android_lifecycle" target="21" />
       <module name="android.image_picker_android" target="21" />
       <module name="android.mobile_scanner" target="21" />
+      <module name="android.printing" target="21" />
+      <module name="android.screen_brightness_android" target="21" />
       <module name="android.url_launcher_android" target="21" />
       <module name="gradle" target="21" />
       <module name="gradle.main" target="11" />
       <module name="gradle.test" target="11" />
+      <module name="io.flutter.plugins.flutter_plugin_android_lifecycle.android.flutter_plugin_android_lifecycle" target="21" />
+      <module name="io.flutter.plugins.imagepicker.android.image_picker_android" target="21" />
     </bytecodeTargetLevel>
   </component>
 </project>
