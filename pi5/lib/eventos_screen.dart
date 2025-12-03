@@ -118,28 +118,31 @@ class _EventosScreenState extends State<EventosScreen> {
                   ),
                 ),
                 currentAccountPicture: CircleAvatar(
-                  backgroundColor: Colors.transparent,
-                  child: ClipOval(
-                    child: (user?.photoURL != null &&
-                            user!.photoURL!.trim().isNotEmpty)
-                        ? Image.network(
-                            user.photoURL!.trim(),
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) {
-                              return Icon(
-                                Icons.person,
-                                size: 40,
-                                color: isDark ? Colors.white : Colors.black54,
-                              );
-                            },
-                          )
-                        : Icon(
-                            Icons.person,
-                            size: 40,
-                            color: isDark ? Colors.white : Colors.black54,
-                          ),
-                  ),
-                ),
+  backgroundColor: Colors.transparent,
+  radius: 36, // você pode ajustar
+  child: ClipOval(
+    child: (user?.photoURL != null && user!.photoURL!.trim().isNotEmpty)
+        ? Image.network(
+            user.photoURL!.trim(),
+            width: 72,      // mesmo valor para largura
+            height: 72,     // e altura -> quadrado
+            fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) {
+              return Icon(
+                Icons.person,
+                size: 40,
+                color: isDark ? Colors.white : Colors.black54,
+              );
+            },
+          )
+        : Icon(
+            Icons.person,
+            size: 40,
+            color: isDark ? Colors.white : Colors.black54,
+          ),
+  ),
+),
+
               ),
 
               // Eventos

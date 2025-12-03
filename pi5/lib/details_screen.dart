@@ -111,59 +111,63 @@ class DetailsScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Cabeçalho
-                      Row(
-                        children: [
-                          CircleAvatar(
-                            radius: 22,
-                            backgroundColor:
-                                theme.colorScheme.primary,
-                            child: const Icon(
-                              Icons.event,
-                              color: Colors.white,
-                              size: 24,
-                            ),
-                          ),
-                          const SizedBox(width: 14),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                nome,
-                                style: TextStyle(
-                                  fontSize: 21,
-                                  fontWeight: FontWeight.bold,
-                                  color: textColor,
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                'Data: $dataFormatada',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: textSecondary,
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                'Local: $local',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: textSecondary,
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                'Valor: R\$ ${preco.toStringAsFixed(2)}',
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.bold,
-                                  color: textSecondary,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
+Row(
+  crossAxisAlignment: CrossAxisAlignment.start,
+  children: [
+    CircleAvatar(
+      radius: 22,
+      backgroundColor: theme.colorScheme.primary,
+      child: const Icon(
+        Icons.event,
+        color: Colors.white,
+        size: 24,
+      ),
+    ),
+    const SizedBox(width: 14),
+    Expanded( // ⬅️ AGORA A COLUNA RESPEITA A LARGURA DISPONÍVEL
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            nome,
+            style: TextStyle(
+              fontSize: 21,
+              fontWeight: FontWeight.bold,
+              color: textColor,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            'Data: $dataFormatada',
+            style: TextStyle(
+              fontSize: 14,
+              color: textSecondary,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            'Local: $local',
+            style: TextStyle(
+              fontSize: 14,
+              color: textSecondary,
+            ),
+            softWrap: true,           // ⬅️ garante quebra de linha
+          ),
+          const SizedBox(height: 2),
+          Text(
+            'Valor: R\$ ${preco.toStringAsFixed(2)}',
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.bold,
+              color: textSecondary,
+            ),
+          ),
+        ],
+      ),
+    ),
+  ],
+),
+
                       const SizedBox(height: 22),
 
                       // Imagem

@@ -14,6 +14,10 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  // 🔴 Sempre começa deslogado
+  await FirebaseAuth.instance.signOut();
+
   runApp(const MainApp());
 }
 
@@ -68,7 +72,7 @@ class _MainAppState extends State<MainApp> {
     }
   }
 
-  /// Chamado pelas telas (Login / Perfil / Eventos / Admin) para trocar tema
+  /// Chamado pelas telas (Login / Perfil / Eventos) para trocar tema
   Future<void> _toggleTheme(bool darkMode) async {
     setState(() {
       _darkMode = darkMode;
@@ -170,7 +174,7 @@ class _MainAppState extends State<MainApp> {
           backgroundColor: Colors.deepPurpleAccent,
           contentTextStyle: TextStyle(color: Colors.white),
         ),
-        switchTheme: const SwitchThemeData(
+        switchTheme: SwitchThemeData(
           thumbColor: MaterialStatePropertyAll(Colors.deepPurpleAccent),
           trackColor: MaterialStatePropertyAll(Colors.deepPurple),
         ),
@@ -180,7 +184,7 @@ class _MainAppState extends State<MainApp> {
       themeMode: _darkMode ? ThemeMode.dark : ThemeMode.light,
       debugShowCheckedModeBanner: false,
 
-      // Rotas extras (chatbot)
+      // Rotas extras (chatbot continua igual)
       routes: {
         '/chatbot': (context) => const ChatbotScreen(),
       },
@@ -225,8 +229,7 @@ class _MainAppState extends State<MainApp> {
               }
 
               final data =
-                  userSnapshot.data!.data() as Map<String, dynamic>? ?? {};
-
+                  userSnapshot.data!.data() as Map<String, dynamic>;
               final isAdmin = data['isAdmin'] == true;
               final nome = data['nome'] ?? (user.displayName ?? '');
               final email = data['email'] ?? (user.email ?? '');

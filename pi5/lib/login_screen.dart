@@ -20,25 +20,23 @@ class _LoginScreenState extends State<LoginScreen> {
   String? errorMsg;
   bool mostrarLogin = false;
 
-  /// Traduz os códigos de erro do FirebaseAuth para mensagens em português
+  /// Traduz erros do Firebase para português
   String _traduzErroFirebase(FirebaseAuthException e) {
     switch (e.code) {
       case 'invalid-email':
-        return 'E-mail inválido. Verifique o formato.';
+        return 'E-mail inválido.';
       case 'user-not-found':
-        return 'Nenhuma conta foi encontrada com este e-mail.';
+        return 'Nenhuma conta encontrada.';
       case 'wrong-password':
-        return 'Senha incorreta. Tente novamente.';
+        return 'Senha incorreta.';
       case 'user-disabled':
-        return 'Esta conta foi desativada.';
+        return 'Conta desativada.';
       case 'too-many-requests':
-        return 'Muitas tentativas de login. Aguarde e tente novamente.';
+        return 'Muitas tentativas. Tente mais tarde.';
       case 'network-request-failed':
-        return 'Falha de conexão. Verifique sua internet.';
-      case 'invalid-credential':
-        return 'E-mail ou senha incorretos. Verifique e tente novamente.';
+        return 'Falha na internet.';
       default:
-        return 'Erro ao fazer login. Tente novamente.';
+        return 'Erro ao fazer login.';
     }
   }
 
@@ -53,8 +51,9 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final textColor =
-        theme.textTheme.bodyLarge?.color ?? (isDark ? Colors.white : Colors.black);
+
+    final textColor = theme.textTheme.bodyLarge?.color ??
+        (isDark ? Colors.white : Colors.black);
     final cardColor = theme.cardColor;
 
     return Scaffold(
@@ -65,7 +64,7 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Logo
+              // LOGO
               Container(
                 width: 140,
                 height: 140,
@@ -74,15 +73,12 @@ class _LoginScreenState extends State<LoginScreen> {
                   shape: BoxShape.circle,
                 ),
                 child: ClipOval(
-                  child: Image.asset(
-                    'assets/logo.jpg',
-                    fit: BoxFit.cover,
-                  ),
+                  child: Image.asset('assets/logo.jpg', fit: BoxFit.cover),
                 ),
               ),
               const SizedBox(height: 48),
 
-              // Tela inicial (escolha login / registrar)
+              // TELA INICIAL - login/registrar
               if (!mostrarLogin) ...[
                 Text(
                   "O que deseja fazer?",
@@ -93,6 +89,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
                 const SizedBox(height: 28),
+
+                // BOTÃO LOGIN
                 SizedBox(
                   width: 160,
                   height: 42,
@@ -103,9 +101,6 @@ class _LoginScreenState extends State<LoginScreen> {
                       elevation: 1,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
-                      ),
-                      side: BorderSide(
-                        color: isDark ? Colors.white12 : Colors.black12,
                       ),
                     ),
                     onPressed: () {
@@ -114,13 +109,14 @@ class _LoginScreenState extends State<LoginScreen> {
                         errorMsg = null;
                       });
                     },
-                    child: const Text(
-                      'Login',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
+                    child: const Text("Login",
+                        style: TextStyle(fontWeight: FontWeight.bold)),
                   ),
                 ),
+
                 const SizedBox(height: 14),
+
+                // BOTÃO REGISTRAR
                 SizedBox(
                   width: 160,
                   height: 42,
@@ -132,121 +128,92 @@ class _LoginScreenState extends State<LoginScreen> {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
                       ),
-                      side: BorderSide(
-                        color: isDark ? Colors.white12 : Colors.black12,
-                      ),
                     ),
                     onPressed: () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => RegisterScreen(
-                            onToggleTheme: widget.onToggleTheme,
-                          ),
+                          builder: (_) =>
+                              RegisterScreen(onToggleTheme: widget.onToggleTheme),
                         ),
                       );
                     },
-                    child: const Text(
-                      'Registrar-se',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
+                    child: const Text("Registrar-se",
+                        style: TextStyle(fontWeight: FontWeight.bold)),
                   ),
                 ),
               ],
 
-              // Tela de login (campos + botões)
+              // TELA DE LOGIN
               if (mostrarLogin) ...[
                 TextField(
                   controller: emailController,
                   decoration: InputDecoration(
                     labelText: 'Email',
-                    labelStyle: TextStyle(
-                      color: isDark ? Colors.white70 : Colors.black87,
-                    ),
+                    filled: true,
+                    fillColor: isDark ? Colors.grey[900] : Colors.white,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    isDense: true,
-                    filled: true,
-                    fillColor: isDark ? Colors.grey[900] : Colors.white,
                   ),
-                  keyboardType: TextInputType.emailAddress,
                   style: TextStyle(color: textColor),
                 ),
                 const SizedBox(height: 20),
 
                 TextField(
                   controller: senhaController,
+                  obscureText: true,
                   decoration: InputDecoration(
                     labelText: 'Senha',
-                    labelStyle: TextStyle(
-                      color: isDark ? Colors.white70 : Colors.black87,
-                    ),
+                    filled: true,
+                    fillColor: isDark ? Colors.grey[900] : Colors.white,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    isDense: true,
-                    filled: true,
-                    fillColor: isDark ? Colors.grey[900] : Colors.white,
                   ),
-                  obscureText: true,
                   style: TextStyle(color: textColor),
                 ),
                 const SizedBox(height: 18),
 
                 if (errorMsg != null)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: Text(
-                      errorMsg!,
+                  Text(errorMsg!,
                       textAlign: TextAlign.center,
-                      style: const TextStyle(color: Colors.red),
-                    ),
-                  ),
+                      style: const TextStyle(color: Colors.red)),
 
+                const SizedBox(height: 12),
+
+                // BOTÃO LOGIN
                 SizedBox(
-                  width: 90,
-                  height: 36,
+                  width: 100,
+                  height: 38,
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: cardColor,
                       foregroundColor: textColor,
-                      elevation: 1,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
-                      ),
-                      side: BorderSide(
-                        color: isDark ? Colors.white12 : Colors.black12,
                       ),
                     ),
                     onPressed: loading ? null : login,
                     child: loading
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Text(
-                            'Login',
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
+                        ? const CircularProgressIndicator(strokeWidth: 2)
+                        : const Text("Login",
+                            style: TextStyle(fontWeight: FontWeight.bold)),
                   ),
                 ),
+
                 const SizedBox(height: 14),
 
+                // BOTÃO VOLTAR
                 SizedBox(
-                  width: 90,
-                  height: 36,
+                  width: 100,
+                  height: 38,
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: cardColor,
                       foregroundColor: textColor,
-                      elevation: 1,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
-                      ),
-                      side: BorderSide(
-                        color: isDark ? Colors.white12 : Colors.black12,
                       ),
                     ),
                     onPressed: () {
@@ -255,13 +222,11 @@ class _LoginScreenState extends State<LoginScreen> {
                         errorMsg = null;
                       });
                     },
-                    child: const Text(
-                      "Voltar",
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
+                    child: const Text("Voltar",
+                        style: TextStyle(fontWeight: FontWeight.bold)),
                   ),
                 ),
-              ],
+              ]
             ],
           ),
         ),
@@ -269,29 +234,14 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
+  // ================= LOGIN =================
+
   Future<void> login() async {
     final email = emailController.text.trim();
-    final senha = senhaController.text;
+    final senha = senhaController.text.trim();
 
-    // ===== VALIDAÇÕES INICIAIS =====
-    if (email.isEmpty && senha.isEmpty) {
-      setState(() {
-        errorMsg = 'Preencha e-mail e senha para continuar.';
-      });
-      return;
-    }
-
-    if (email.isNotEmpty && senha.isEmpty) {
-      setState(() {
-        errorMsg = 'Digite sua senha para continuar.';
-      });
-      return;
-    }
-
-    if (email.isEmpty && senha.isNotEmpty) {
-      setState(() {
-        errorMsg = 'Digite seu e-mail para continuar.';
-      });
+    if (email.isEmpty || senha.isEmpty) {
+      setState(() => errorMsg = "Preencha email e senha.");
       return;
     }
 
@@ -301,81 +251,65 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     try {
-      // LOGIN NO FIREBASE AUTH
-      final userCredential =
-          await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: email,
-        password: senha,
-      );
+      // LOGIN
+      final userCred = await FirebaseAuth.instance
+          .signInWithEmailAndPassword(email: email, password: senha);
 
-      final user = userCredential.user;
-      if (user == null) {
-        setState(() {
-          errorMsg = "Erro inesperado. Tente novamente!";
-          loading = false;
-        });
-        return;
-      }
-
-      // BUSCA O DOC EM users/<uid>
-      final userDoc = await FirebaseFirestore.instance
+      final user = userCred.user!;
+      final doc = await FirebaseFirestore.instance
           .collection('users')
           .doc(user.uid)
           .get();
 
-      if (!userDoc.exists) {
+      if (!doc.exists) {
         setState(() {
-          errorMsg = "Usuário não cadastrado na base de dados!";
           loading = false;
+          errorMsg = "Usuário não encontrado no banco.";
         });
         return;
       }
 
-      final data = userDoc.data() ?? {};
-      final isAdmin = data['isAdmin'] == true; // garante bool
-      final nome = data['nome'] ?? (user.displayName ?? '');
-      final emailUser = data['email'] ?? (user.email ?? '');
+      final data = doc.data()!;
+      final isAdmin = data['isAdmin'] == true;
+      final savedDark = data['darkMode'] == true;
 
+      // 🔥 Ativar tema salvo
+      if (widget.onToggleTheme != null) widget.onToggleTheme!(savedDark);
+
+      setState(() => loading = false);
+
+      // REDIRECIONAR
       if (!mounted) return;
 
-      setState(() {
-        loading = false;
-      });
-
       if (isAdmin) {
-        // ADMIN
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => AdminScreen(
-              nome: nome,
-              email: emailUser,
+            builder: (_) => AdminScreen(
+              nome: data['nome'],
+              email: data['email'],
               onToggleTheme: widget.onToggleTheme,
-              darkMode: Theme.of(context).brightness == Brightness.dark,
+              darkMode: savedDark,
             ),
           ),
         );
       } else {
-        // USUÁRIO NORMAL
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => EventosScreen(
-              onToggleTheme: widget.onToggleTheme,
-            ),
+            builder: (_) =>
+                EventosScreen(onToggleTheme: widget.onToggleTheme),
           ),
         );
       }
     } on FirebaseAuthException catch (e) {
-      if (!mounted) return;
       setState(() {
         errorMsg = _traduzErroFirebase(e);
         loading = false;
       });
     } catch (e) {
-      if (!mounted) return;
       setState(() {
-        errorMsg = "Erro ao fazer login. Tente novamente.";
+        errorMsg = "Erro inesperado.";
         loading = false;
       });
     }
