@@ -44,75 +44,67 @@ class _PerfilUsuarioScreenState extends State<PerfilUsuarioScreen> {
 
   Future<void> _loadUser() async {
     setState(() => loading = true);
-    try {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user != null) {
-        // Dados básicos
-        final doc = await FirebaseFirestore.instance
-            .collection('users')
-            .doc(user.uid)
-            .get();
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      // Dados básicos
+      final doc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
 
-        final data = doc.data() as Map<String, dynamic>?;
+      final data = doc.data() as Map<String, dynamic>?;
 
-        // Nome: prioridade Firestore -> displayName -> vazio
-        String nome = '';
-        if (data != null &&
-            data['nome'] != null &&
-            data['nome'].toString().trim().isNotEmpty) {
-          nome = data['nome'].toString().trim();
-        } else if (user.displayName != null &&
-            user.displayName!.trim().isNotEmpty) {
-          nome = user.displayName!.trim();
-        }
-
-        // E-mail: prioridade Firestore -> auth
-        String email = '';
-        if (data != null &&
-            data['email'] != null &&
-            data['email'].toString().trim().isNotEmpty) {
-          email = data['email'].toString().trim();
-        } else {
-          email = user.email ?? '';
-        }
-
-        // Foto: prioridade Firestore -> auth
-        String? foto;
-        if (data != null &&
-            data['fotoUrl'] != null &&
-            data['fotoUrl'].toString().trim().isNotEmpty) {
-          foto = data['fotoUrl'].toString().trim();
-        } else {
-          foto = user.photoURL;
-        }
-
-        _nomeController.text = nome;
-        _emailController.text = email;
-        fotoUrl = foto;
-
-        // Estatísticas de ingressos
-        final ingressosSnap = await FirebaseFirestore.instance
-            .collection('tickets')
-            .where('userId', isEqualTo: user.uid)
-            .get();
-
-        int ativos = 0;
-        for (final t in ingressosSnap.docs) {
-          final dataTicket = t.data() as Map<String, dynamic>;
-          if ((dataTicket['status'] ?? '').toString().toLowerCase() == 'ativo') {
-            ativos++;
-          }
-        }
-
-        _totalIngressos = ingressosSnap.docs.length;
-        _ingressosAtivos = ativos;
+      // Nome: prioridade Firestore -> displayName -> vazio
+      String nome = '';
+      if (data != null &&
+          data['nome'] != null &&
+          data['nome'].toString().trim().isNotEmpty) {
+        nome = data['nome'].toString().trim();
+      } else if (user.displayName != null &&
+          user.displayName!.trim().isNotEmpty) {
+        nome = user.displayName!.trim();
       }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Erro ao carregar perfil.'),
-        ),
-      );
+
+      // Email: prioridade Firestore -> auth
+      String email = '';
+      if (data != null &&
+          data['email'] != null &&
+          data['email'].toString().trim().isNotEmpty) {
+        email = data['email'].toString().trim();
+      } else {
+        email = user.email ?? '';
+      }
+
+      // Foto: prioridade Firestore -> auth
+      String? foto;
+      if (data != null &&
+          data['fotoUrl'] != null &&
+          data['fotoUrl'].toString().trim().isNotEmpty) {
+        foto = data['fotoUrl'].toString().trim();
+      } else {
+        foto = user.photoURL;
+      }
+
+      _nomeController.text = nome;
+      _emailController.text = email;
+      fotoUrl = foto;
+
+      // Estatísticas de ingressos
+      final ingressosSnap = await FirebaseFirestore.instance
+          .collection('tickets')
+          .where('userId', isEqualTo: user.uid)
+          .get();
+
+      int ativos = 0;
+      for (final t in ingressosSnap.docs) {
+        final dataTicket = t.data() as Map<String, dynamic>;
+        if ((dataTicket['status'] ?? '').toString().toLowerCase() == 'ativo') {
+          ativos++;
+        }
+      }
+
+      _totalIngressos = ingressosSnap.docs.length;
+      _ingressosAtivos = ativos;
     }
     setState(() => loading = false);
   }
@@ -123,12 +115,12 @@ class _PerfilUsuarioScreenState extends State<PerfilUsuarioScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Editar ${campo == "nome" ? "nome" : "e-mail"}'),
+        title: Text('Editar ${campo == "nome" ? "Nome" : "Email"}'),
         content: TextFormField(
           controller: controller,
           autofocus: true,
           decoration: InputDecoration(
-            labelText: campo == "nome" ? "Nome completo" : "E-mail",
+            labelText: campo == "nome" ? "Nome do Usuário" : "Email",
           ),
           keyboardType:
               campo == "email" ? TextInputType.emailAddress : TextInputType.text,
@@ -162,7 +154,7 @@ class _PerfilUsuarioScreenState extends State<PerfilUsuarioScreen> {
     final nomeFormatado = nomeNovo.trim();
     if (nomeFormatado.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("O nome não pode ficar em branco.")),
+        const SnackBar(content: Text("O nome não pode ser vazio.")),
       );
       return;
     }
@@ -177,7 +169,7 @@ class _PerfilUsuarioScreenState extends State<PerfilUsuarioScreen> {
 
     setState(() => _nomeController.text = nomeFormatado);
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Nome atualizado com sucesso!")),
+      const SnackBar(content: Text("Nome atualizado!")),
     );
   }
 
@@ -193,15 +185,16 @@ class _PerfilUsuarioScreenState extends State<PerfilUsuarioScreen> {
       await user.reload();
       setState(() => _emailController.text = emailFormatado);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("E-mail atualizado com sucesso!")),
+        const SnackBar(content: Text("Email atualizado!")),
       );
     } on FirebaseAuthException catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Erro ao atualizar e-mail: ${e.message}")),
+        SnackBar(content: Text("Erro ao atualizar email: ${e.message}")),
       );
     }
   }
 
+  /// ALTERAR FOTO DE PERFIL
   Future<void> _alterarFoto() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
@@ -213,12 +206,30 @@ class _PerfilUsuarioScreenState extends State<PerfilUsuarioScreen> {
 
     setState(() => alterandoFoto = true);
 
+    final oldUrl = fotoUrl; // pra tentar apagar a antiga depois
+
     try {
       final file = File(picked.path);
-      final ref = FirebaseStorage.instance.ref('usuarios/${user.uid}/foto.jpg');
+
+      // 🔹 gera um nome único pra cada upload (evita cache da mesma URL)
+      final fileName =
+          'foto_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final ref =
+          FirebaseStorage.instance.ref('usuarios/${user.uid}/$fileName');
+
       await ref.putFile(file);
       final url = await ref.getDownloadURL();
 
+      // apaga foto antiga no Storage (se existir), só pra não acumular lixo
+      if (oldUrl != null && oldUrl.isNotEmpty) {
+        try {
+          await FirebaseStorage.instance.refFromURL(oldUrl).delete();
+        } catch (_) {
+          // se der erro, ignora
+        }
+      }
+
+      // Atualiza Firestore
       await FirebaseFirestore.instance
           .collection('users')
           .doc(user.uid)
@@ -228,108 +239,28 @@ class _PerfilUsuarioScreenState extends State<PerfilUsuarioScreen> {
 
       // Atualiza também no perfil do FirebaseAuth
       await user.updatePhotoURL(url);
-      await user.reload(); // garante que currentUser fique atualizado
+      await user.reload();
 
       setState(() {
         fotoUrl = url;
         alterandoFoto = false;
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Foto de perfil atualizada!")),
+        const SnackBar(content: Text("Foto atualizada!")),
       );
     } catch (e) {
       setState(() => alterandoFoto = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Erro ao atualizar foto de perfil: $e")),
+        SnackBar(content: Text("Erro ao atualizar foto: $e")),
       );
-    }
-  }
-
-  /// Pede a senha novamente e reautentica o usuário antes de operações sensíveis
-  Future<bool> _reautenticarUsuario(User user) async {
-    final email = user.email;
-    if (email == null || email.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Não foi possível obter o e-mail para reautenticação.'),
-        ),
-      );
-      return false;
-    }
-
-    final senhaController = TextEditingController();
-
-    final confirmou = await showDialog<bool>(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Confirmar senha'),
-          content: TextField(
-            controller: senhaController,
-            obscureText: true,
-            decoration: const InputDecoration(
-              labelText: 'Digite novamente sua senha',
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Cancelar'),
-            ),
-            ElevatedButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              child: const Text('Confirmar'),
-            ),
-          ],
-        );
-      },
-    );
-
-    if (confirmou != true) return false;
-
-    try {
-      final cred = EmailAuthProvider.credential(
-        email: email,
-        password: senhaController.text.trim(),
-      );
-      await user.reauthenticateWithCredential(cred);
-      return true;
-    } on FirebaseAuthException catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            e.code == 'wrong-password'
-                ? 'Senha incorreta. Tente novamente.'
-                : 'Erro na reautenticação: ${e.message}',
-          ),
-        ),
-      );
-      return false;
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Erro inesperado na reautenticação: $e'),
-        ),
-      );
-      return false;
     }
   }
 
   Future<void> _apagarConta() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
-
     final uid = user.uid;
-
-    // 1) Reautenticar antes de apagar
-    final ok = await _reautenticarUsuario(user);
-    if (!ok) {
-      // Usuário cancelou ou falhou a reautenticação
-      return;
-    }
-
     try {
-      // 2) Apagar ingressos do usuário
       final ingressosSnap = await FirebaseFirestore.instance
           .collection('tickets')
           .where('userId', isEqualTo: uid)
@@ -337,47 +268,26 @@ class _PerfilUsuarioScreenState extends State<PerfilUsuarioScreen> {
       for (final doc in ingressosSnap.docs) {
         await doc.reference.delete();
       }
-
-      // 3) Apagar foto de perfil do Storage (se existir)
       final fotoRef = FirebaseStorage.instance.ref('usuarios/$uid/foto.jpg');
       try {
         await fotoRef.delete();
-      } catch (_) {
-        // Se não existir, ignora
-      }
-
-      // 4) Apagar documento do usuário em "users"
+      } catch (_) {}
       await FirebaseFirestore.instance.collection('users').doc(uid).delete();
-
-      // 5) Apagar usuário do Auth
       await user.delete();
 
-      if (!mounted) return;
-
-      // 6) Voltar para tela de login
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(
-          builder: (context) => LoginScreen(
-            onToggleTheme: widget.onToggleTheme,
+      if (mounted) {
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(
+            builder: (context) => LoginScreen(
+              onToggleTheme: widget.onToggleTheme,
+            ),
           ),
-        ),
-        (route) => false,
-      );
-    } on FirebaseAuthException catch (e) {
-      String msg;
-      if (e.code == 'requires-recent-login') {
-        msg =
-            'Por segurança, faça login novamente e tente apagar a conta mais uma vez.';
-      } else {
-        msg = 'Erro ao apagar a conta: ${e.message}';
+          (route) => false,
+        );
       }
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(msg)),
-      );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erro ao apagar a conta: $e')),
+        SnackBar(content: Text("Erro ao apagar conta: $e")),
       );
     }
   }
@@ -393,7 +303,7 @@ class _PerfilUsuarioScreenState extends State<PerfilUsuarioScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Meu perfil',
+          'Perfil de Usuário',
           style: TextStyle(color: textColor),
         ),
         backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
@@ -429,8 +339,9 @@ class _PerfilUsuarioScreenState extends State<PerfilUsuarioScreen> {
                           child: (fotoUrl == null || fotoUrl!.isEmpty)
                               ? Icon(Icons.person,
                                   size: 60,
-                                  color:
-                                      isDark ? Colors.white24 : Colors.grey)
+                                  color: isDark
+                                      ? Colors.white24
+                                      : Colors.grey)
                               : null,
                         ),
                         if (alterandoFoto)
@@ -460,7 +371,7 @@ class _PerfilUsuarioScreenState extends State<PerfilUsuarioScreen> {
                       readOnly: true,
                       enableInteractiveSelection: false,
                       decoration: InputDecoration(
-                        labelText: "Nome completo",
+                        labelText: "Nome do Usuário",
                         labelStyle: TextStyle(
                             color: isDark
                                 ? Colors.white70
@@ -495,7 +406,7 @@ class _PerfilUsuarioScreenState extends State<PerfilUsuarioScreen> {
                       readOnly: true,
                       enableInteractiveSelection: false,
                       decoration: InputDecoration(
-                        labelText: "E-mail",
+                        labelText: "Email",
                         labelStyle: TextStyle(
                             color: isDark
                                 ? Colors.white70
@@ -529,7 +440,7 @@ class _PerfilUsuarioScreenState extends State<PerfilUsuarioScreen> {
                     Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
-                        "Resumo da conta",
+                        "Resumo da sua conta",
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
@@ -551,7 +462,7 @@ class _PerfilUsuarioScreenState extends State<PerfilUsuarioScreen> {
                                     CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    "Total de ingressos",
+                                    "Ingressos totais",
                                     style: TextStyle(
                                       fontSize: 13,
                                       color: textSecondary,
@@ -610,7 +521,7 @@ class _PerfilUsuarioScreenState extends State<PerfilUsuarioScreen> {
 
                     // BOTÃO APAGAR CONTA
                     SizedBox(
-                      width: 200,
+                      width: 180,
                       height: 40,
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
@@ -646,14 +557,14 @@ class _PerfilUsuarioScreenState extends State<PerfilUsuarioScreen> {
                                     borderRadius:
                                         BorderRadius.circular(18)),
                                 title: Text(
-                                  'Confirmar exclusão da conta',
+                                  'Confirmar Exclusão',
                                   style: TextStyle(
                                     color: textColor,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
                                 content: Text(
-                                  'Tem certeza de que deseja apagar sua conta? Esta ação não pode ser desfeita.',
+                                  'Tem certeza que deseja apagar sua conta? Esta ação não pode ser desfeita.',
                                   style: TextStyle(
                                       color: isDark
                                           ? Colors.white70
@@ -674,7 +585,7 @@ class _PerfilUsuarioScreenState extends State<PerfilUsuarioScreen> {
                                     style: TextButton.styleFrom(
                                       foregroundColor: Colors.red,
                                     ),
-                                    child: const Text('Apagar conta'),
+                                    child: const Text('Apagar'),
                                     onPressed: () =>
                                         Navigator.of(context).pop(true),
                                   ),
@@ -685,7 +596,7 @@ class _PerfilUsuarioScreenState extends State<PerfilUsuarioScreen> {
                           if (confirmar == true) _apagarConta();
                         },
                         child: const Text(
-                          'Apagar conta',
+                          'Apagar Conta',
                           style: TextStyle(
                             color: Colors.red,
                           ),

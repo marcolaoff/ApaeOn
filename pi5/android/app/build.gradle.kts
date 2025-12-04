@@ -14,7 +14,7 @@ android {
     defaultConfig {
         applicationId = "com.example.pi5"
 
-        minSdk = 21
+        minSdk = 23
         targetSdk = 35   // <-- AGORA FUNCIONA EM AGP >= 8.1
 
         versionCode = flutter.versionCode

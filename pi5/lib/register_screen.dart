@@ -232,93 +232,119 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   Future<void> register() async {
-    final cpf = cpfController.text.trim();
-    final nome = nomeController.text.trim();
-    final email = emailController.text.trim();
-    final senha = senhaController.text;
+  final cpf = cpfController.text.trim();
+  final nome = nomeController.text.trim();
+  final email = emailController.text.trim();
+  final senha = senhaController.text;
 
-    // ===== VALIDAÇÕES LOCAIS =====
-    if (cpf.isEmpty || nome.isEmpty || email.isEmpty || senha.isEmpty) {
-      setState(() {
-        errorMsg = "Preencha todos os campos.";
-      });
-      return;
-    }
-
-    if (cpf.length != 11) {
-      setState(() {
-        errorMsg = "CPF inválido. Digite os 11 números do CPF (somente dígitos).";
-      });
-      return;
-    }
-
-    if (!email.contains('@') || !email.contains('.')) {
-      setState(() {
-        errorMsg = "Digite um e-mail válido.";
-      });
-      return;
-    }
-
-    if (senha.length < 6) {
-      setState(() {
-        errorMsg = "A senha deve ter pelo menos 6 caracteres.";
-      });
-      return;
-    }
-
+  // ===== VALIDAÇÕES LOCAIS =====
+  if (cpf.isEmpty || nome.isEmpty || email.isEmpty || senha.isEmpty) {
+    if (!mounted) return;
     setState(() {
-      loading = true;
-      errorMsg = null;
+      errorMsg = "Preencha todos os campos.";
     });
+    return;
+  }
 
+  if (cpf.length != 11) {
+    if (!mounted) return;
+    setState(() {
+      errorMsg = "CPF inválido. Digite os 11 números do CPF (somente dígitos).";
+    });
+    return;
+  }
+
+  if (!email.contains('@') || !email.contains('.')) {
+    if (!mounted) return;
+    setState(() {
+      errorMsg = "Digite um e-mail válido.";
+    });
+    return;
+  }
+
+  if (senha.length < 6) {
+    if (!mounted) return;
+    setState(() {
+      errorMsg = "A senha deve ter pelo menos 6 caracteres.";
+    });
+    return;
+  }
+
+  if (!mounted) return;
+  setState(() {
+    loading = true;
+    errorMsg = null;
+  });
+
+  try {
+    // ========== 1) CRIAR USUÁRIO NO AUTH ==========
+    final credential =
+        await FirebaseAuth.instance.createUserWithEmailAndPassword(
+      email: email,
+      password: senha,
+    );
+
+    final user = credential.user;
+    final uid = user?.uid;
+
+    if (uid == null) {
+      if (!mounted) return;
+      setState(() {
+        errorMsg = "Erro desconhecido ao registrar usuário (UID nulo).";
+        loading = false;
+      });
+      return;
+    }
+
+    // Tenta atualizar o displayName (não é obrigatório para funcionar)
     try {
-      // Cria o usuário no Firebase Auth
-      final credential =
-          await FirebaseAuth.instance.createUserWithEmailAndPassword(
-        email: email,
-        password: senha,
-      );
+      await user!.updateDisplayName(nome);
+      await user.reload();
+    } catch (e) {
+      // Aqui só fazemos log, não quebramos o fluxo
+      // print('Erro ao atualizar displayName: $e');
+    }
 
-      final user = credential.user;
-      final uid = user?.uid;
-      if (uid == null) {
-        setState(() {
-          errorMsg = "Erro desconhecido ao registrar usuário.";
-          loading = false;
-        });
-        return;
-      }
-
-      // Atualiza displayName no Auth
-      try {
-        await user!.updateDisplayName(nome);
-        await user.reload();
-      } catch (_) {
-        // se falhar, não quebra o fluxo
-      }
-
-      // Salva dados complementares no Firestore
+    // ========== 2) SALVAR DADOS NO FIRESTORE ==========
+    try {
       await FirebaseFirestore.instance.collection('users').doc(uid).set({
         'cpf': cpf,
         'nome': nome,
         'email': email,
         'isAdmin': false,
-        'darkMode': widget.darkMode, // já deixa alinhado com o tema atual
-      });
-
-      if (!mounted) return;
-
-      Navigator.of(context).pop(); // volta para tela de login
-    } on FirebaseAuthException catch (e) {
-      setState(() {
-        errorMsg = _traduzErroCadastro(e);
-        loading = false;
+        'darkMode': widget.darkMode, // mantém alinhado com o tema atual
       });
     } catch (e) {
+      // Se der erro aqui, o usuário foi criado no Auth, mas não no Firestore
+      if (!mounted) return;
       setState(() {
-        errorMsg = "Erro inesperado. Tente novamente.";
+        errorMsg =
+            "Usuário criado, mas houve erro ao salvar os dados no banco. Verifique as regras do Firestore.";
         loading = false;
       });
+      return;
     }
+
+    if (!mounted) return;
+
+    setState(() {
+      loading = false;
+    });
+
+    // Fecha a tela e volta para o login
+    Navigator.of(context).pop();
+  } on FirebaseAuthException catch (e) {
+    if (!mounted) return;
+    setState(() {
+      errorMsg = _traduzErroCadastro(e);
+      loading = false;
+    });
+  } catch (e) {
+    if (!mounted) return;
+    setState(() {
+      errorMsg = "Erro inesperado. Tente novamente.\n\nDetalhe: $e";
+      loading = false;
+    });
   }
+}
 }

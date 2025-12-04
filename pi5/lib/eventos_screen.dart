@@ -96,54 +96,119 @@ class _EventosScreenState extends State<EventosScreen> {
           child: ListView(
             padding: EdgeInsets.zero,
             children: [
-              // Cabeçalho com dados do usuário logado (FirebaseAuth)
-              UserAccountsDrawerHeader(
-                decoration: BoxDecoration(
-                  color: appBarBg,
-                ),
-                accountName: Text(
-                  user?.displayName?.trim().isNotEmpty == true
-                      ? user!.displayName!.trim()
-                      : 'Usuário',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: textColor,
-                  ),
-                ),
-                accountEmail: Text(
-                  user?.email ?? 'Sem email cadastrado',
-                  style: TextStyle(
-                    color: textColor.withOpacity(0.7),
-                  ),
-                ),
-                currentAccountPicture: CircleAvatar(
-  backgroundColor: Colors.transparent,
-  radius: 36, // você pode ajustar
-  child: ClipOval(
-    child: (user?.photoURL != null && user!.photoURL!.trim().isNotEmpty)
-        ? Image.network(
-            user.photoURL!.trim(),
-            width: 72,      // mesmo valor para largura
-            height: 72,     // e altura -> quadrado
-            fit: BoxFit.cover,
-            errorBuilder: (_, __, ___) {
-              return Icon(
-                Icons.person,
-                size: 40,
-                color: isDark ? Colors.white : Colors.black54,
-              );
-            },
-          )
-        : Icon(
-            Icons.person,
-            size: 40,
-            color: isDark ? Colors.white : Colors.black54,
-          ),
-  ),
-),
+              // Cabeçalho com dados do usuário logado (Firestore + FirebaseAuth)
+              if (user != null)
+                StreamBuilder<DocumentSnapshot>(
+                  stream: FirebaseFirestore.instance
+                      .collection('users')
+                      .doc(user.uid)
+                      .snapshots(),
+                  builder: (context, snapshot) {
+                    final data =
+                        snapshot.data?.data() as Map<String, dynamic>?;
 
-              ),
+                    // Nome
+                    String nomeDrawer;
+                    final firestoreNome = data?['nome'] as String?;
+                    if (firestoreNome != null &&
+                        firestoreNome.trim().isNotEmpty) {
+                      nomeDrawer = firestoreNome.trim();
+                    } else if (user.displayName != null &&
+                        user.displayName!.trim().isNotEmpty) {
+                      nomeDrawer = user.displayName!.trim();
+                    } else {
+                      nomeDrawer = 'Usuário';
+                    }
+
+                    // Email
+                    String emailDrawer;
+                    final firestoreEmail = data?['email'] as String?;
+                    if (firestoreEmail != null &&
+                        firestoreEmail.trim().isNotEmpty) {
+                      emailDrawer = firestoreEmail.trim();
+                    } else {
+                      emailDrawer = user.email ?? 'Sem email cadastrado';
+                    }
+
+                    // Foto (prioridade Firestore -> Auth)
+                    String? fotoDrawer;
+                    final firestoreFoto = data?['fotoUrl'] as String?;
+                    if (firestoreFoto != null &&
+                        firestoreFoto.trim().isNotEmpty) {
+                      fotoDrawer = firestoreFoto.trim();
+                    } else if (user.photoURL != null &&
+                        user.photoURL!.trim().isNotEmpty) {
+                      fotoDrawer = user.photoURL!.trim();
+                    } else {
+                      fotoDrawer = null;
+                    }
+
+                    return UserAccountsDrawerHeader(
+                      decoration: BoxDecoration(
+                        color: appBarBg,
+                      ),
+                      accountName: Text(
+                        nomeDrawer,
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: textColor,
+                        ),
+                      ),
+                      accountEmail: Text(
+                        emailDrawer,
+                        style: TextStyle(
+                          color: textColor.withOpacity(0.7),
+                        ),
+                      ),
+                      currentAccountPicture: CircleAvatar(
+                        backgroundColor: Colors.transparent,
+                        radius: 36,
+                        child: ClipOval(
+                          child: (fotoDrawer != null &&
+                                  fotoDrawer.trim().isNotEmpty)
+                              ? Image.network(
+                                  fotoDrawer.trim(),
+                                  width: 72,
+                                  height: 72,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) {
+                                    return Icon(
+                                      Icons.person,
+                                      size: 40,
+                                      color: isDark
+                                          ? Colors.white
+                                          : Colors.black54,
+                                    );
+                                  },
+                                )
+                              : Icon(
+                                  Icons.person,
+                                  size: 40,
+                                  color: isDark
+                                      ? Colors.white
+                                      : Colors.black54,
+                                ),
+                        ),
+                      ),
+                    );
+                  },
+                )
+              else
+                DrawerHeader(
+                  decoration: BoxDecoration(color: appBarBg),
+                  child: Align(
+                    alignment: Alignment.bottomLeft,
+                    child: Text(
+                      'Usuário não logado',
+                      style: TextStyle(
+                        color: textColor,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
 
               // Eventos
               ListTile(
@@ -359,9 +424,8 @@ class EventosTab extends StatelessWidget {
                               'Data: $dataFormatada',
                               style: TextStyle(
                                 fontSize: 13,
-                                color: isDark
-                                    ? Colors.white60
-                                    : Colors.black54,
+                                color:
+                                    isDark ? Colors.white60 : Colors.black54,
                               ),
                             ),
                           ],
@@ -662,9 +726,8 @@ class MeusIngressosTab extends StatelessWidget {
                               'Data: $dataFormatada',
                               style: TextStyle(
                                 fontSize: 13,
-                                color: isDark
-                                    ? Colors.white60
-                                    : Colors.black54,
+                                color:
+                                    isDark ? Colors.white60 : Colors.black54,
                               ),
                             ),
                           ],

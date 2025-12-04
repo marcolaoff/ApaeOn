@@ -14,10 +14,6 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-
-  // 🔴 Sempre começa deslogado
-  await FirebaseAuth.instance.signOut();
-
   runApp(const MainApp());
 }
 
@@ -42,7 +38,7 @@ class _MainAppState extends State<MainApp> {
   Future<void> _loadInitialTheme() async {
     final user = FirebaseAuth.instance.currentUser;
 
-    // Ninguém logado ainda → usa tema claro por padrão
+    // Se ninguém estiver logado, usa tema claro por padrão
     if (user == null) {
       setState(() {
         _darkMode = false;
@@ -58,13 +54,11 @@ class _MainAppState extends State<MainApp> {
           .get();
 
       final savedDark = doc.data()?['darkMode'] == true;
-
       setState(() {
         _darkMode = savedDark;
         _carregandoTema = false;
       });
     } catch (_) {
-      // Se der erro, cai no tema padrão
       setState(() {
         _darkMode = false;
         _carregandoTema = false;
@@ -72,7 +66,7 @@ class _MainAppState extends State<MainApp> {
     }
   }
 
-  /// Chamado pelas telas (Login / Perfil / Eventos) para trocar tema
+  /// Chamado pelas telas (Eventos / Perfil / Admin) para trocar tema
   Future<void> _toggleTheme(bool darkMode) async {
     setState(() {
       _darkMode = darkMode;
@@ -89,7 +83,7 @@ class _MainAppState extends State<MainApp> {
 
   @override
   Widget build(BuildContext context) {
-    // Enquanto carrega o tema do Firestore, mostra tela de loading simples
+    // Enquanto carrega o tema do Firestore, mostra uma tela simples
     if (_carregandoTema) {
       return MaterialApp(
         debugShowCheckedModeBanner: false,
@@ -104,7 +98,7 @@ class _MainAppState extends State<MainApp> {
     return MaterialApp(
       title: 'Gerenciador de Eventos',
 
-      // 🔆 TEMA CLARO
+      // Tema claro
       theme: ThemeData(
         primarySwatch: Colors.deepPurple,
         brightness: Brightness.light,
@@ -140,7 +134,7 @@ class _MainAppState extends State<MainApp> {
         ),
       ),
 
-      // 🌙 TEMA ESCURO
+      // Tema escuro
       darkTheme: ThemeData(
         primarySwatch: Colors.deepPurple,
         brightness: Brightness.dark,
@@ -174,22 +168,22 @@ class _MainAppState extends State<MainApp> {
           backgroundColor: Colors.deepPurpleAccent,
           contentTextStyle: TextStyle(color: Colors.white),
         ),
-        switchTheme: SwitchThemeData(
+        switchTheme: const SwitchThemeData(
           thumbColor: MaterialStatePropertyAll(Colors.deepPurpleAccent),
           trackColor: MaterialStatePropertyAll(Colors.deepPurple),
         ),
       ),
 
-      // 🌗 Controlado por _darkMode + Firestore
+      // Controla o tema
       themeMode: _darkMode ? ThemeMode.dark : ThemeMode.light,
       debugShowCheckedModeBanner: false,
 
-      // Rotas extras (chatbot continua igual)
+      // Rotas extras (chatbot)
       routes: {
         '/chatbot': (context) => const ChatbotScreen(),
       },
 
-      // 🔐 Decide a tela inicial pelo estado do FirebaseAuth
+      // Decide a tela inicial pelo estado do FirebaseAuth
       home: StreamBuilder<User?>(
         stream: FirebaseAuth.instance.authStateChanges(),
         builder: (context, authSnapshot) {
@@ -201,14 +195,14 @@ class _MainAppState extends State<MainApp> {
 
           final user = authSnapshot.data;
 
-          // Ninguém logado → Login
+          // Ninguém logado → vai para LoginScreen
           if (user == null) {
             return LoginScreen(
               onToggleTheme: _toggleTheme,
             );
           }
 
-          // Usuário logado → buscar dados no Firestore (isAdmin, nome, email, etc.)
+          // Usuário logado → busca dados no Firestore (isAdmin, nome, email, etc.)
           return FutureBuilder<DocumentSnapshot>(
             future: FirebaseFirestore.instance
                 .collection('users')
@@ -235,7 +229,7 @@ class _MainAppState extends State<MainApp> {
               final email = data['email'] ?? (user.email ?? '');
 
               if (isAdmin) {
-                // 👉 Admin autenticado
+                // Admin autenticado
                 return AdminScreen(
                   nome: nome,
                   email: email,
@@ -243,7 +237,7 @@ class _MainAppState extends State<MainApp> {
                   darkMode: _darkMode,
                 );
               } else {
-                // 👉 Usuário comum
+                // Usuário comum
                 return EventosScreen(
                   onToggleTheme: _toggleTheme,
                 );
