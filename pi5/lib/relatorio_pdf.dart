@@ -15,49 +15,54 @@ class RelatorioPDF {
           return pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
-              pw.Text("Relatório Geral de Eventos",
-                  style: pw.TextStyle(
-                    fontSize: 20,
-                    fontWeight: pw.FontWeight.bold,
-                  )),
+              pw.Text(
+                "Relatório Geral de Eventos",
+                style: pw.TextStyle(
+                  fontSize: 20,
+                  fontWeight: pw.FontWeight.bold,
+                ),
+              ),
+
               pw.SizedBox(height: 20),
 
-              /// Lista de eventos
+              /// Tabela **sem a coluna de não vendidos**
               pw.Table(
                 border: pw.TableBorder.all(),
                 children: [
                   pw.TableRow(
                     children: [
                       pw.Padding(
-                          padding: pw.EdgeInsets.all(8),
-                          child: pw.Text("Evento")),
+                        padding: pw.EdgeInsets.all(8),
+                        child: pw.Text("Evento"),
+                      ),
                       pw.Padding(
-                          padding: pw.EdgeInsets.all(8),
-                          child: pw.Text("Vendidos")),
+                        padding: pw.EdgeInsets.all(8),
+                        child: pw.Text("Vendidos"),
+                      ),
                       pw.Padding(
-                          padding: pw.EdgeInsets.all(8),
-                          child: pw.Text("Não vendidos")),
-                      pw.Padding(
-                          padding: pw.EdgeInsets.all(8),
-                          child: pw.Text("Arrecadado")),
+                        padding: pw.EdgeInsets.all(8),
+                        child: pw.Text("Arrecadado"),
+                      ),
                     ],
                   ),
+
                   ...eventos.map((e) {
                     return pw.TableRow(
                       children: [
                         pw.Padding(
-                            padding: pw.EdgeInsets.all(8),
-                            child: pw.Text(e["evento"])),
+                          padding: pw.EdgeInsets.all(8),
+                          child: pw.Text(e["evento"]),
+                        ),
                         pw.Padding(
-                            padding: pw.EdgeInsets.all(8),
-                            child: pw.Text("${e['vendidos']}")),
+                          padding: pw.EdgeInsets.all(8),
+                          child: pw.Text("${e['vendidos']}"),
+                        ),
                         pw.Padding(
-                            padding: pw.EdgeInsets.all(8),
-                            child: pw.Text("${e['nao_vendidos']}")),
-                        pw.Padding(
-                            padding: pw.EdgeInsets.all(8),
-                            child: pw.Text(
-                                "R\$ ${e['arrecadado'].toStringAsFixed(2)}")),
+                          padding: pw.EdgeInsets.all(8),
+                          child: pw.Text(
+                            "R\$ ${e['arrecadado'].toStringAsFixed(2)}",
+                          ),
+                        ),
                       ],
                     );
                   }).toList(),
@@ -65,6 +70,7 @@ class RelatorioPDF {
               ),
 
               pw.SizedBox(height: 20),
+
               pw.Text(
                 "Total geral arrecadado: R\$ ${totalGeral.toStringAsFixed(2)}",
                 style: pw.TextStyle(

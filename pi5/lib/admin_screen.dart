@@ -886,7 +886,6 @@ class _GerenciarEventosTabState extends State<GerenciarEventosTab> {
     );
   }
 }
-
 // =====================================================================
 // RELATÓRIO
 // =====================================================================
@@ -933,7 +932,7 @@ class _RelatorioTabState extends State<RelatorioTab> {
 
         // Se existir campo total no evento
         final total = data["total"] ?? vendidos;
-        final naoVendidos = total - vendidos;
+        final naoVendidos = total - vendidos; // Mantido apenas internamente
 
         final arrecadado = vendidos * preco;
         totalGeral += arrecadado;
@@ -1001,9 +1000,9 @@ class _RelatorioTabState extends State<RelatorioTab> {
                 itemCount: relatorio!["eventos"].length,
                 itemBuilder: (context, index) {
                   final e = relatorio!["eventos"][index];
+
                   return Card(
-                    margin:
-                    const EdgeInsets.only(bottom: 14),
+                    margin: const EdgeInsets.only(bottom: 14),
                     child: ListTile(
                       title: Text(
                         e["evento"],
@@ -1011,8 +1010,7 @@ class _RelatorioTabState extends State<RelatorioTab> {
                             fontWeight: FontWeight.bold),
                       ),
                       subtitle: Text(
-                        "Vendidos: ${e['vendidos']} | "
-                            "Não vendidos: ${e['nao_vendidos']}\n"
+                        "Vendidos: ${e['vendidos']}\n"
                             "Arrecadado: R\$ ${e['arrecadado'].toStringAsFixed(2)}",
                       ),
                     ),
@@ -1041,10 +1039,10 @@ class _RelatorioTabState extends State<RelatorioTab> {
                 icon: const Icon(Icons.picture_as_pdf),
                 label: const Text("Gerar PDF"),
                 onPressed: () async {
-                  final pdf = await RelatorioPDF.gerarPDF(relatorio!);
+                  final pdf =
+                  await RelatorioPDF.gerarPDF(relatorio!);
                   await Printing.layoutPdf(
-                    onLayout: (_) async => pdf,
-                  );
+                      onLayout: (_) async => pdf);
                 },
               ),
             ),
@@ -1066,7 +1064,6 @@ class _RelatorioTabState extends State<RelatorioTab> {
     );
   }
 }
-
 
 // =====================================================================
 // VALIDAR INGRESSOS

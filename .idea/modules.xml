@@ -4,10 +4,7 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/ApaeOn.iml" filepath="$PROJECT_DIR$/.idea/ApaeOn.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/android.iml" filepath="$PROJECT_DIR$/.idea/modules/android.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/android.app.iml" filepath="$PROJECT_DIR$/.idea/modules/app/android.app.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/android.app.androidTest.iml" filepath="$PROJECT_DIR$/.idea/modules/app/android.app.androidTest.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/android.app.main.iml" filepath="$PROJECT_DIR$/.idea/modules/app/android.app.main.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/android.app.unitTest.iml" filepath="$PROJECT_DIR$/.idea/modules/app/android.app.unitTest.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/1385259419/android.cloud_firestore.iml" filepath="$PROJECT_DIR$/.idea/modules/1385259419/android.cloud_firestore.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/1385259419/android.cloud_firestore.androidTest.iml" filepath="$PROJECT_DIR$/.idea/modules/1385259419/android.cloud_firestore.androidTest.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/1385259419/android.cloud_firestore.main.iml" filepath="$PROJECT_DIR$/.idea/modules/1385259419/android.cloud_firestore.main.iml" />
