@@ -1,4 +1,8 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 import 'services/gemini_service.dart';
 
 class ChatMessage {
@@ -11,6 +15,25 @@ class ChatMessage {
     required this.isUser,
     DateTime? timestamp,
   }) : timestamp = timestamp ?? DateTime.now();
+
+  // ==== SERIALIZAÇÃO PARA SALVAR NO DISPOSITIVO ====
+  Map<String, dynamic> toMap() {
+    return {
+      'text': text,
+      'isUser': isUser,
+      'timestamp': timestamp.toIso8601String(),
+    };
+  }
+
+  factory ChatMessage.fromMap(Map<String, dynamic> map) {
+    return ChatMessage(
+      text: map['text'] ?? '',
+      isUser: map['isUser'] ?? false,
+      timestamp: map['timestamp'] != null
+          ? DateTime.parse(map['timestamp'])
+          : DateTime.now(),
+    );
+  }
 }
 
 class ChatbotScreen extends StatefulWidget {
@@ -40,13 +63,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
   @override
   void initState() {
     super.initState();
-    _messages.add(
-      ChatMessage(
-        text:
-            'Olá! 👋\nEu sou o assistente do ApaeOn.\n\nPosso te ajudar com ingressos, eventos, perfil, login e uso do aplicativo.',
-        isUser: false,
-      ),
-    );
+    _loadMessages();
   }
 
   @override
@@ -54,6 +71,45 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
     _controller.dispose();
     _scrollController.dispose();
     super.dispose();
+  }
+
+  // ========= PERSISTÊNCIA DO HISTÓRICO =========
+
+  Future<void> _loadMessages() async {
+    final prefs = await SharedPreferences.getInstance();
+    final stored = prefs.getStringList('chat_messages') ?? [];
+
+    if (!mounted) return;
+
+    if (stored.isEmpty) {
+      // primeira vez: mostra mensagem de boas-vindas
+      setState(() {
+        _messages.add(
+          ChatMessage(
+            text:
+                'Olá! 👋\nEu sou o assistente do ApaeOn.\n\nPosso te ajudar com ingressos, eventos, perfil, login e uso do aplicativo.',
+            isUser: false,
+          ),
+        );
+      });
+    } else {
+      final loaded = stored
+          .map((s) => ChatMessage.fromMap(jsonDecode(s)))
+          .toList();
+
+      setState(() {
+        _messages
+          ..clear()
+          ..addAll(loaded);
+      });
+    }
+  }
+
+  Future<void> _saveMessages() async {
+    final prefs = await SharedPreferences.getInstance();
+    final list =
+        _messages.map((m) => jsonEncode(m.toMap())).toList();
+    await prefs.setStringList('chat_messages', list);
   }
 
   // ========= ENVIO E EXIBIÇÃO =========
@@ -68,6 +124,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
       _isTyping = true;
     });
     _scrollToBottom();
+    await _saveMessages(); // salva após mensagem do usuário
 
     String resposta;
 
@@ -86,6 +143,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
       _isTyping = false;
     });
     _scrollToBottom();
+    await _saveMessages(); // salva após resposta da IA
   }
 
   void _scrollToBottom() {
@@ -186,7 +244,8 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
     final chipBg = isDark ? theme.cardColor : Colors.white;
 
     final labelColor =
-        theme.textTheme.bodyMedium?.color ?? (isDark ? Colors.white70 : Colors.black87);
+        theme.textTheme.bodyMedium?.color ??
+            (isDark ? Colors.white70 : Colors.black87);
 
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
